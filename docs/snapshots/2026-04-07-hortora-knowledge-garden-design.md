@@ -2,7 +2,7 @@
 **Date:** 2026-04-07
 **Topic:** Knowledge garden v2 redesign — architecture, federation, and brand
 **Supersedes:** *(none — parallel to 2026-04-06-writing-infrastructure-and-garden.md)*
-**Superseded by:** *(leave blank)*
+**Superseded by:** [2026-04-09-phase2-github-backend-complete](2026-04-09-phase2-github-backend-complete.md)
 
 ---
 
