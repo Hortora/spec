@@ -10,21 +10,24 @@ Hortora is a **federated, governed knowledge garden system** — a cross-project
 
 The problem it solves: developers rediscover the same non-obvious bugs and workarounds repeatedly across projects. Hortora captures them once, organises them with quality lifecycle management, and eventually federates them across machines and teams via GitHub-backed canonical gardens.
 
-It replaces an ad-hoc system (`~/claude/knowledge-garden/`) that works but has no structure, no validation, no deduplication tooling, and no federation. The full design is in `spec/`.
+It replaces an ad-hoc system (`~/claude/knowledge-garden/`) that works but has no structure, no validation, no deduplication tooling, and no federation. The full design is in this repo.
 
 ---
 
 ## Local Folder Structure
 
-`~/claude/hortora/` is the **Hortora GitHub organisation** root. Each subfolder is a separate GitHub repository:
+`~/claude/hortora/` is the **Hortora GitHub organisation** root. Each subfolder is a separate GitHub repository. This file lives in `spec/` — the other repos are siblings:
 
 ```
 ~/claude/hortora/
-├── HANDOFF.md                  ← you are here
+├── spec/                       ← Hortora/spec — you are here
+│   ├── HANDOFF.md              ← this file
+│   └── docs/                   ← design, ADRs, blog, snapshots
 ├── hortora.github.io/          ← Hortora/hortora.github.io
-├── spec/                       ← Hortora/spec
 └── soredium/                   ← Hortora/soredium
 ```
+
+**Starting a Hortora Claude session:** open Claude in `~/claude/hortora/spec/` and add the sibling directories (`../soredium`, `../hortora.github.io`) as needed for the work at hand.
 
 ---
 
