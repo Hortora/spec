@@ -67,8 +67,7 @@ formats. This is ADR-0003.
 A reviewer raised something I hadn't framed clearly: entries capture WHAT
 (symptom, fix) but not WHY this fix over alternatives, or WHEN the knowledge
 expires. Without staleness enforcement, an AI agent acts on a three-year-old
-gotcha with the same confidence as a fresh one. "Red hat bureaucracy with
-agentic powers."
+gotcha with the same confidence as a fresh one. "corporate bureaucracy with agentic powers."
 
 The `staleness_threshold` field has existed since Phase 1 but does nothing —
 entries past threshold are indistinguishable from current ones.
