@@ -2,7 +2,7 @@
 **Date:** 2026-04-09
 **Topic:** Phase 2 complete — GitHub backend and CI pipeline live
 **Supersedes:** [2026-04-07-hortora-knowledge-garden-design](2026-04-07-hortora-knowledge-garden-design.md)
-**Superseded by:** *(leave blank — filled in if this snapshot is later superseded)*
+**Superseded by:** [2026-04-10-phase2-post-refinements](2026-04-10-phase2-post-refinements.md)
 
 ---
 
