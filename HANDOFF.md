@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-04-10 — harvest, garden migration, path config, GE-ID redesign, staleness.*
+*Last updated: 2026-04-12 — website docs, homepage Quick Start, garden migration complete.*
 
 ---
 
@@ -12,76 +12,63 @@
 
 *Unchanged — `git show HEAD~1:HANDOFF.md`*
 
+---
+
 ## The Three Repos
 
-### `hortora.github.io` — updated for path and ID scheme
-Docs updated: `how-it-works.html`, `getting-started.html`, `index.html` all reflect
-`~/.hortora/garden`, `HORTORA_GARDEN` env var, new GE-ID format, GitHub Issues removed.
-Pushed.
+### `hortora.github.io` — major updates ✅
 
-### `spec` — pushed ✅
-ADR-0003, design snapshot 2026-04-10, blog entry 2026-04-10, IDEAS.md created.
+New this session:
+- **4 docs pages** — Getting Started, How It Works, Skills Reference, Design Spec (with sidebar nav, C2 layout)
+- **Homepage Quick Start section** — install via `/install-skills https://github.com/Hortora/soredium`, forage, harvest with git graphic
+- **Getting Started simplified** — single `/install-skills` command (removed curl/python3 approach)
+- All pushed and live at hortora.github.io
 
-### `soredium` — pushed ✅
-- `validate_garden.py`: accepts both `GE-\d{4}` (legacy) and `GE-\d{8}-[0-9a-f]{6}` (new)
-- `garden-setup.sh`: uses `${HORTORA_GARDEN:-~/.hortora/garden}`
-- `forage/SKILL.md`, `harvest/SKILL.md`: 62 path replacements, new GE-ID generation, GitHub Issues removed
-- Skills synced to `~/.claude/skills/`
+### `spec` — unchanged since 2026-04-10 ✅
 
-### `Hortora/garden` — live ✅
-- Moved to `~/.hortora/garden` (was `~/claude/garden`)
-- Symlink `~/claude/knowledge-garden` → `~/.hortora/garden` for backward compat
-- 169+ entries; 13 submissions merged this session
-- 1 pending submission: GE-20260410-5fd0c3 (validate_garden.py fence-stripping false positive)
+### `soredium` — multiple fixes pushed ✅
+
+- `validate_garden.py`: new GE-ID format now first in alternation — prevents `GE-\d{4}` from greedily matching prefix of `GE-YYYYMMDD-xxxxxx`
+- `integrate_entry.py`: reads GE-ID from frontmatter `id` field (not filename); removed `close_github_issue`; guards missing frontmatter
+- `CLAUDE.md`: migration constraint section replaced with "Migration complete" status
+
+### `Hortora/garden` — housekeeping complete ✅
+
+- 9 submissions merged (electron×3, git×3, jest×1, python×1, hortora validator×1)
+- 11 previously unindexed entries given GE-IDs and added to GARDEN.md
+- `Last assigned ID` renamed to `Last legacy ID` (vestigial counter, new IDs are date-based)
+- **Drift: 20** — DEDUPE should run next session (threshold 10)
+- 1 pending submission: Hortora/garden#16 (regex alternation PR, awaiting CI + merge)
+
+### cc-praxis — updated ✅
+
+- `CLAUDE.md` Key Skills: `garden` replaced with `forage` + `harvest` entries
+- `handover/SKILL.md`: all "garden sweep" → "forage sweep", `garden` CAPTURE → `forage` CAPTURE
+- `~/.claude/skills/garden/` removed — legacy skill deprecated
 
 ---
 
-## The Live Garden (Current State)
+## Migration Status
 
-**Last assigned ID (legacy):** GE-0172  
-**New IDs:** `GE-YYYYMMDD-xxxxxx` format (ADR-0003) — no counter, no coordination  
-**Drift:** 0 (full DEDUPE completed this session)  
-**Pending submissions:** 1 (GE-20260410-5fd0c3 — run `/harvest`)
-
----
-
-## Key Changes This Session
-
-| Change | Detail |
-|--------|--------|
-| Garden path | `~/claude/garden` → `~/.hortora/garden`; `HORTORA_GARDEN` env var; symlink preserved |
-| GE-ID scheme | Sequential counter → `GE-YYYYMMDD-xxxxxx` (date + 6 random hex); ADR-0003 |
-| GitHub Issues | Removed from forage capture flow entirely; PRs only |
-| Staleness problem | Named and documented in `spec/IDEAS.md` with 6 solutions and likelihood ratings |
-| Fence-stripping bug | Fixed in GE-0091 prose (literal ` ``` ` was confusing the validator regex) |
+**Complete.** forage + harvest are the only garden skills installed. All CLAUDE.md files updated. The legacy `garden` skill source still lives in cc-praxis repo (task #8 — full removal deferred, low priority).
 
 ---
 
 ## What To Do Next
 
-### Immediate — unblocked now
+### Immediate
 
-**1. Harvest the pending submission**
-```bash
-/harvest
-```
+**1. Merge Hortora/garden#16** — regex alternation PR (CI validates, then merge)
 
-**2. Update CI workflows in `Hortora/garden`**  
-`validate-on-pr.yml` and `integrate-on-merge.yml` still reference old issue-based flow.
-Need to accept new `GE-YYYYMMDD-xxxxxx` ID format and remove issue-creation/closing steps.
+**2. Run DEDUPE** — drift at 20, threshold 10. Run `/harvest DEDUPE` in a dedicated session.
 
-**3. Test forage GitHub mode end-to-end**  
-Submit a real entry via PR, watch CI validate, merge, confirm indexes update.
-Blocked on #2.
+**3. Write blog entry** — this session has good material (docs site, migration complete, garden housekeeping). Skipped due to context budget.
 
 ### Later
 
-**4. Implement staleness enforcement** — `spec/IDEAS.md` has 6 solutions.
-Easiest first: age annotations in forage SEARCH results (solution #2, hours of work).
+**4. Migrate 172 entries to YAML frontmatter** (task #5) — needs a migration script in soredium. Design questions: which markdown fields map to which YAML keys, how to handle missing fields, derive `domain` from directory path. Start with brainstorm in a fresh session.
 
-**5. Deprecate legacy `garden` skill** — once forage+harvest validated across several sessions.
-
-**6. Phase 3** — Claude-in-CI for borderline PRs, PyPI graduation for `garden-engine`.
+**5. Fully remove `garden` skill from cc-praxis source** — low priority, no functional impact.
 
 ---
 
@@ -89,13 +76,12 @@ Easiest first: age annotations in forage SEARCH results (solution #2, hours of w
 
 | Resource | Location |
 |----------|----------|
-| Design snapshot (this session) | `spec/docs/snapshots/2026-04-10-phase2-post-refinements.md` |
+| Latest design docs | `spec/docs/design/` |
 | ADR-0003 (GE-ID scheme) | `spec/docs/adr/0003-ge-id-scheme-date-plus-random-hex.md` |
-| Staleness ideas | `spec/IDEAS.md` |
-| Blog entry (this session) | `spec/docs/blog/2026-04-10-mdp01-post-phase2-cleanup.md` |
 | forage skill | `~/.claude/skills/forage/SKILL.md` |
 | harvest skill | `~/.claude/skills/harvest/SKILL.md` |
 | validate_garden.py | `~/claude/hortora/soredium/scripts/validate_garden.py` |
+| integrate_entry.py | `~/claude/hortora/soredium/scripts/integrate_entry.py` |
 | Live garden | `~/.hortora/garden/` |
-| soredium issues | https://github.com/Hortora/soredium/issues |
+| garden PR#16 | https://github.com/Hortora/garden/pull/16 |
 | Live site | https://hortora.github.io |
