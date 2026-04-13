@@ -1,44 +1,48 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-04-12 — garden#16 merged, DEDUPE complete, blog entry 05 written.*
+*Last updated: 2026-04-13 — garden#17 merged, 174 legacy entries migrated to individual files.*
 
 ---
 
 ## What Hortora Is
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+*Unchanged — `git show HEAD~2:HANDOFF.md`*
 
 ## Local Folder Structure
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+*Unchanged — `git show HEAD~2:HANDOFF.md`*
 
 ---
 
 ## The Three Repos
 
-### `hortora.github.io` — blog entry added ✅
+### `hortora.github.io` — unchanged ✅
 
-- Blog entry 05 written and committed: `_posts/2026-04-12-from-prototype-to-installable.md`
-- Everything else unchanged from previous handover
+### `spec` — design snapshot added ✅
 
-### `spec` — unchanged ✅
+- `snapshots/2026-04-13-garden-entry-format.md` — freezes the entry format decision
 
-### `soredium` — unchanged ✅
+### `soredium` — migration script added ✅
 
-### `Hortora/garden` — DEDUPE complete, garden#17 open ✅
+- `scripts/migrate_legacy_entries.py` — migrates legacy multi-entry .md files to individual YAML-frontmatter files; reusable
 
-- garden#16 (regex alternation fix) — **merged**
-- DEDUPE run: 1,002 pairs across java-panama-ffm, quarkus, electron, tools
-  - 8 related (cross-refs added), 994 distinct, 0 duplicates
-  - Drift reset to 0
-- **garden#17 open** — forage submission GE-20260412-b6c0f8 (Read tool 256KB limit gotcha)
-  - Waiting on CI + merge, same pattern as #16
+### `Hortora/garden` — major structural migration complete ✅
+
+- garden#17 (Read tool 256KB limit gotcha) — **merged and pushed**
+- **174 legacy entries** extracted from multi-entry `.md` files to individual `GE-NNNN.md` files
+  - 63 source files deleted (fully migrated)
+  - 6 source files updated (unindexed entries retained)
+  - 303 GARDEN.md links updated
+- 3 previously-unindexed new-format entries indexed: GE-20260412-17c8ce, GE-20260412-e4773d, GE-20260412-b6c0f8
+- Garden pushed to remote — `Hortora/garden` main is current
+
+**Garden structure:** all entries are now `<domain>/GE-XXXX.md` with YAML frontmatter. Multi-entry topic files are gone (except 6 files with unindexed entries).
 
 ---
 
 ## Migration Status
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+**Complete.** forage + harvest are the only garden skills. Legacy `garden` skill source still in cc-praxis (low priority removal).
 
 ---
 
@@ -46,13 +50,15 @@
 
 ### Immediate
 
-**1. Merge garden#17** — Read tool 256KB limit gotcha. CI validates, then merge (same flow as #16).
+**Nothing urgent.** Garden is stable and pushed.
 
 ### Later
 
-**2. Migrate 172 entries to YAML frontmatter** (task #5) — needs a migration script in soredium.
+**1. Auto-integrate on PR merge** — three entries were missing from GARDEN.md index after PR merges because `integrate_entry.py` doesn't run automatically post-merge. Either add a CI step or document the manual step clearly.
 
-**3. Fully remove `garden` skill from cc-praxis source** — low priority, no functional impact.
+**2. Populate `_summaries/`, `_index/`, `labels/`** for the 174 migrated legacy entries — `integrate_entry.py` was never run for them.
+
+**3. Remove legacy `garden` skill from cc-praxis source** — low priority.
 
 ---
 
@@ -60,12 +66,10 @@
 
 | Resource | Location |
 |----------|----------|
-| Latest design docs | `spec/docs/design/` |
+| Latest design snapshot | `spec/snapshots/2026-04-13-garden-entry-format.md` |
 | ADR-0003 (GE-ID scheme) | `spec/docs/adr/0003-ge-id-scheme-date-plus-random-hex.md` |
+| Migration script | `~/claude/hortora/soredium/scripts/migrate_legacy_entries.py` |
 | forage skill | `~/.claude/skills/forage/SKILL.md` |
 | harvest skill | `~/.claude/skills/harvest/SKILL.md` |
-| validate_garden.py | `~/claude/hortora/soredium/scripts/validate_garden.py` |
-| integrate_entry.py | `~/claude/hortora/soredium/scripts/integrate_entry.py` |
 | Live garden | `~/.hortora/garden/` |
-| garden PR#17 | https://github.com/Hortora/garden/pull/17 |
 | Live site | https://hortora.github.io |
