@@ -159,6 +159,32 @@ Each of the five sections follows a consistent pattern:
 
 ---
 
+## Section 6: Deduplication
+
+**Heading:** "Duplicate knowledge is eliminated in layers, not all at once"
+
+**Problem:** A single dedup gate at submission time is either too strict (rejecting valid near-duplicates) or too permissive (letting close variants through). A knowledge garden under active contribution from multiple sessions accumulates semantic drift that point-in-time checks cannot catch.
+
+**Solution — Three-level deduplication with a drift counter:**
+
+- **L1 — Jaccard at PR time (`validate_pr.py`):** Runs automatically on every submission. Compares the incoming entry against all existing entries in the same domain using Jaccard similarity. Catches obvious duplicates and rejects them before any human review. Fires in CI — no operator action required.
+- **L2 — Related entry detection (`harvest DEDUPE`):** Periodic maintenance operation that compares all within-domain entry pairs not yet checked against each other. Related entries (similar but legitimately distinct) are identified and cross-referenced — "See also: GE-XXXX" is added to both entries. This improves retrieval coherence without discarding valid knowledge.
+- **L3 — Duplicate consolidation (`harvest DEDUPE`):** Within the same sweep, true duplicates (one entry is a subset or copy of another) are surfaced to the maintainer for consolidation. The less complete entry is retired; the more complete entry is preserved. Discarded entries are recorded in `DISCARDED.md` for audit.
+- **Drift counter:** `GARDEN.md` tracks `Entries merged since last sweep`. When it reaches the configured threshold (default: 10), `harvest DEDUPE` should be run. The counter is visible, persistent, and incremented by the CI integration step on every merge — it is the discipline mechanism that prevents dedup debt from accumulating silently.
+
+**Guarantees:**
+- L1 catches obvious duplicates before merge — no obviously redundant entry enters the garden through the standard workflow
+- Every dedup comparison is logged in `CHECKED.md` — pairs are never compared twice, and the full comparison history is auditable
+- Discarded entries are recorded in `DISCARDED.md`, not silently deleted — the decision to discard is always traceable
+- The drift counter makes dedup debt visible — maintainers always know how many entries have been added since the last sweep
+
+**Graceful degradation:**
+- L2/L3 (`harvest DEDUPE`) require a dedicated session with full context budget — they are not run automatically by CI
+- The drift counter triggers an obligation, not an enforcement gate — a garden can continue operating above threshold, but the counter makes the debt visible
+- Cross-domain duplicates are not checked — entries in different domains are assumed to be distinct by definition
+
+---
+
 ## Implementation notes
 
 - Match existing HTML structure: Jekyll frontmatter, `docs-layout` with `docs-sidebar` and `docs-content`
