@@ -68,7 +68,36 @@ Legacy entries (GE-0NNN format, predating the YAML frontmatter migration) have `
 
 The newer GE-YYYYMMDD-xxxxxx entries (63 total) all have populated tags.
 
-**Action needed:** A harvest REVIEW pass or a dedicated tagging session to backfill tags on legacy entries. Low urgency — tags improve search quality but entries are still retrievable without them. Best addressed alongside a staleness review.
+**Action needed:** Run `garden_tag_backfill.py` (to be built — see plan below). Low urgency — tags improve search quality but entries are still retrievable without them.
+
+### Retrospective tag backfill plan
+
+The content to infer from is already present in each entry: `title`, `stack`, and the body text. A rule-based script gets 80% of the way without any LLM call.
+
+**Script: `soredium/scripts/garden_tag_backfill.py`**
+
+For each legacy entry with `tags: []`:
+
+1. **Extract candidates from `title` + `stack`** — split on spaces, commas, backticks, version strings. Map to known tags. Examples:
+   - `stack: "Hibernate ORM 6.x, Quarkus"` → `[hibernate, jpa, quarkus]`
+   - `title: "macOS BSD sed silently ignores word boundaries"` → `[sed, macos, regex, bsd]`
+
+2. **Normalise against existing vocabulary** — build a frequency list from the 63 new-format entries (which all have good tags). Only emit tags already in use; don't invent new ones. Common tags observed: `hibernate`, `jpa`, `quarkus`, `testing`, `regex`, `git`, `macos`, `java`, `python`, `async`, `ci-cd`, `sql`, `jvm`, `logging`, `performance`, `debugging`.
+
+3. **Extract symptom-type terms from body** — scan for patterns like `silent failure`, `race condition`, `truncated`, `ClassCastException`, etc. to add cross-cutting tags.
+
+4. **`--dry-run` mode** — print proposed tag changes per file, no writes. Human reviews output before anything is touched.
+
+5. **Commit per domain or in a single batch** — each commit message references which entries were updated.
+
+**What rule-based misses (needs manual pass):**
+- Conceptual tags (`strategy`, `debugging`, `performance`) not visible in title/stack
+- Synonym mappings that need a lookup table (e.g. "Hibernate" → add `jpa`)
+- Ambiguous entries where the title doesn't make the tech domain obvious
+
+**Estimated effort:** one session to write + test the script, ~30 min human review of dry-run output for 123 entries, one commit per domain.
+
+**Dependency:** existing tag vocabulary from new-format entries. Build vocabulary list first by running `garden_web_data.py` and extracting all unique non-empty tags.
 
 ---
 
