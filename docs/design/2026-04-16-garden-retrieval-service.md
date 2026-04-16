@@ -109,9 +109,72 @@ garden-retrieval/
 
 ---
 
-## Qdrant Collection Setup
+## Partitioning Strategy
 
-One collection: `garden_entries`
+**Domain is the natural top-level partitioning key** for both Git and Qdrant. The
+garden-per-domain model (each canonical garden is a separate Git repo + Qdrant collection)
+provides consistent partitioning at every layer of the stack.
+
+### Why partitioning matters at scale
+
+At 1M entries in a single Qdrant collection:
+
+| | Single collection (1M) | Per-domain collections (~100K each) |
+|---|---|---|
+| HNSW graph RAM | 10–15GB | 1–1.5GB per collection |
+| Query latency | 15–40ms | 5–15ms |
+| Qdrant startup | 3–8 minutes | 20–60 seconds |
+| IDF corpus scope | Cross-domain (noisy) | Per-domain (meaningful) |
+
+The IDF point is significant: `"modifier": "idf"` computes term rarity within the
+collection. "hibernate" in a Java-only collection has more precise IDF weighting than
+"hibernate" in a mixed collection containing tools, Python, and frontend entries.
+Domain partitioning improves BM25/SPLADE scoring quality, not just performance.
+
+### Level 1: Garden-per-collection (primary partition)
+
+Each canonical garden maps to one Qdrant collection. This is the natural unit because
+each canonical garden also has its own Git repo and `garden-retrieval` service.
+
+```
+jvm-garden     → Qdrant collection: garden_entries  (on jvm-garden's Qdrant instance)
+tools-garden   → Qdrant collection: garden_entries  (on tools-garden's Qdrant instance)
+python-garden  → Qdrant collection: garden_entries  (on python-garden's Qdrant instance)
+```
+
+Domain-filtered queries hit only one garden's service. Cross-garden queries fan out to
+multiple services and merge results.
+
+### Level 2: Domain-per-collection (secondary partition, at scale)
+
+If a single canonical garden grows very large (>200K entries), split further by domain
+within that garden. `jvm-garden` with 500K entries across java, quarkus, spring, kotlin:
+
+```
+jvm_java       → Qdrant collection
+jvm_quarkus    → Qdrant collection
+jvm_kotlin     → Qdrant collection
+```
+
+The `garden-retrieval` service resolves the target collection from the `domain` parameter.
+When `domain` is unspecified, it queries all collections and merges via RRF.
+
+### Level 3: Qdrant distributed sharding (horizontal scaling)
+
+When a single collection exceeds what one Qdrant instance can serve (hundreds of millions
+of entries), Qdrant's distributed mode shards across multiple nodes. The shard key is
+`domain` — all vectors with the same domain land on the same shard, so domain-filtered
+queries hit only one shard without scatter-gather.
+
+This level is not needed until well beyond 1M entries. Design for Level 1 now;
+Level 2 is a collection split (no code changes); Level 3 is a Qdrant deployment change.
+
+---
+
+## Qdrant Collection Schema
+
+One collection per garden (or per domain within a large garden). Schema is identical
+across all collections:
 
 ```json
 {
@@ -132,9 +195,23 @@ One collection: `garden_entries`
 }
 ```
 
-Qdrant payload indexes on `domain`, `score`, `type`, `tags` for fast pre-filtering before vector search.
+Payload indexes on `domain`, `score`, `type`, `tags` for fast pre-filtering.
 
-The `"modifier": "idf"` on the sparse vector tells Qdrant to apply IDF weighting to BM25 — corpus statistics managed entirely by Qdrant.
+`"modifier": "idf"` — Qdrant applies IDF weighting at query time from live corpus
+statistics. No IDF table in Java. Corpus statistics are per-collection, so domain
+partitioning makes them more accurate.
+
+### Collection naming convention
+
+```
+{garden-name}_entries          # single-domain garden
+{garden-name}_{domain}         # split by domain within a large garden
+
+Examples:
+  jvm_entries
+  tools_entries
+  jvm_quarkus                  # when jvm-garden splits quarkus out
+```
 
 ---
 
@@ -270,11 +347,28 @@ A human is using the garden browser or a CLI. They want the best result at the t
 GET /api/search
   ?q=hibernate flush lifecycle callback
   &mode=recall          (default: recall)
-  &domain=java          (optional payload filter)
+  &domain=java          (optional — routes to correct collection)
   &type=gotcha          (optional payload filter)
   &min_score=8          (optional payload filter, default: 0)
   &limit=5              (optional, default: 5 for recall, 3 for precision)
 ```
+
+### Collection routing
+
+The service resolves the target Qdrant collection from the `domain` parameter:
+
+```java
+private String resolveCollection(String domain) {
+    if (domain == null) return "garden_entries";          // search all
+    return collectionMap.getOrDefault(domain, "garden_entries");
+    // e.g. "java" → "jvm_java", "quarkus" → "jvm_quarkus"
+    //      "tools" → "tools_entries" (when split)
+}
+```
+
+When `domain` is null, the service fans out to all collections for this garden and
+merges results via RRF before returning. For most queries, `domain` is specified and
+only one collection is touched — O(log n) per collection rather than O(log N) across all.
 
 ### Qdrant hybrid query (same structure for both modes)
 
@@ -283,14 +377,15 @@ public List<SearchResult> search(String query, String domain,
                                   String type, int minScore,
                                   int limit, boolean precision) {
 
+    var collection = resolveCollection(domain);
+
     var filter = Filter.must(
-        domain    != null ? fieldCondition("domain", domain)   : null,
-        type      != null ? fieldCondition("type",   type)     : null,
-        minScore  > 0     ? rangeCondition("score",  minScore) : null
+        type      != null ? fieldCondition("type",  type)     : null,
+        minScore  > 0     ? rangeCondition("score", minScore) : null
+        // domain filter NOT needed when routed to domain-specific collection
     );
 
-    // Qdrant generates query vectors server-side (same models as indexing)
-    var results = qdrantClient.queryHybrid("garden_entries",
+    var results = qdrantClient.queryHybrid(collection,
         QueryRequest.builder()
             .prefetch(dense(query,  filter, limit * 4))   // semantic candidates
             .prefetch(sparse(query, filter, limit * 4))   // BM25 candidates
