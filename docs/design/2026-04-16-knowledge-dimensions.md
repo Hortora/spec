@@ -293,18 +293,186 @@ retrieval, is the only architecture that works at this scope.
 
 ---
 
+## Major Finding: Knowledge-Type-First, Not Technology-Domain-First
+
+**This is a critical architectural correction.**
+
+### What was assumed
+
+Gardens organised by **technology domain** first:
+```
+jvm-garden     → java, quarkus, kotlin entries
+tools-garden   → tools, cli, git entries
+python-garden  → python entries
+```
+
+### What is actually right
+
+**Knowledge type is the primary organizing axis. Technology domain is metadata.**
+
+A Hibernate gotcha and a Strangler Fig migration pattern are fundamentally different
+kinds of knowledge. They need different editorial bars, different curation communities,
+different retrieval semantics, different staleness thresholds. Putting them in the same
+garden because they "both relate to Java" is the wrong neighbour relationship.
+
+```
+# Wrong (technology-first)      # Right (knowledge-type-first)
+jvm-garden                      discovery-garden
+tools-garden                    patterns-garden
+python-garden                   assessment-garden
+                                transformation-garden
+                                risk-garden
+```
+
+### What changes
+
+| Decision | Technology-first | Knowledge-type-first |
+|---|---|---|
+| Top-level partition | Technology (jvm, tools, python) | Knowledge type (discovery, patterns, assessment) |
+| Canonical garden name | `jvm-garden` | `discovery-garden` |
+| Domain role | Organizing structure | Metadata / payload filter |
+| Curation community | Java people curate jvm-garden | Practitioners curate discovery-garden; architects curate patterns-garden |
+| Editorial bar | One bar per technology garden | Different bar per knowledge type |
+| Child garden extends | A technology garden | A knowledge type garden |
+| Qdrant partition key | domain (java, tools) | knowledge_type (discovery, pattern, assessment) |
+
+### What stays valid
+
+The current `Hortora/garden` git repo is essentially the **discovery-garden** — it has
+gotchas, techniques, undocumented. The technology domain directories (java/, tools/) become
+metadata/filters rather than structural. The git structure can stay; the conceptual model
+changes.
+
+The Qdrant partitioning insight (domain as sharding key within a collection) still holds —
+just within `discovery-garden`, domain partitions the collection for performance.
+
+---
+
+## Knowledge Capture Modalities
+
+Knowledge enters the garden through four distinct modalities. All four produce the same
+garden entry format. The pipeline and quality mechanism differ.
+
+| Modality | Source | Trigger | Quality mechanism | Volume |
+|---|---|---|---|---|
+| **Session capture** (forage skill) | Developer insight during coding | Human notices something non-obvious | Human validates before submission | Low, high quality |
+| **Mining** (code miner) | Existing codebases | Scheduled scan or triggered | LLM extracts + human review gate | Medium, variable quality |
+| **Migration capture** | Migration sessions | Sprint retrospective or live session | Experienced practitioners capture as it happens | Medium, high quality |
+| **Support ticket ingestion** | Ticketing system (Zendesk, Jira SM, ServiceNow, Linear) | Batch pipeline or on-close webhook | Aggressive filtering + LLM normalisation + review | High volume, low signal density |
+
+### Which dimension each modality primarily feeds
+
+| Modality | Primary dimension | Secondary |
+|---|---|---|
+| Session capture | Discovery (gotchas, techniques) | Pattern (techniques) |
+| Code mining | Pattern (code examples, architecture) | Discovery (bugs found in review) |
+| Migration capture | Transformation + Risk | Discovery (migration-specific gotchas) |
+| Support tickets | Discovery + Risk | Temporal (version-specific bugs) |
+
+---
+
+## Support Ticket Ingestion
+
+Support tickets are **customer-sourced knowledge** — different epistemic source from
+developer-sourced gotchas. A developer writing a gotcha has deep context on *why*. A
+support ticket has the *symptom* (from the customer) and the *resolution* (from the
+support engineer). Together they are often more valuable than either alone.
+
+### Pipeline
+
+```
+Ticketing system API (Zendesk, Jira SM, ServiceNow, Linear, GitHub Issues...)
+        │
+        ▼ Pre-filter (cheap, no LLM)
+   Keep only:
+   - Resolved tickets (no resolution = no knowledge yet)
+   - Software issues (not hardware / environment-only)
+   - Not already a duplicate of an open ticket
+        │
+        ▼ Group similar tickets (before any LLM call)
+   Cluster by: title similarity + tags + product area
+   50 tickets about the same issue → 1 LLM call, not 50
+   Use BM25 title match + tag overlap for cheap clustering
+        │
+        ▼ LLM pipeline (Claude API or Ollama)
+   For each cluster:
+   - Strip PII (names, companies, emails, account IDs, internal URLs)
+   - Generalise (specific → universal):
+     "Our UserService fails on prod-us-east-1" →
+     "Custom service injection fails when..."
+   - Extract: symptom, root cause, fix, why non-obvious
+   - Score against 5-dimension editorial criteria
+   - Classify: gotcha / technique / undocumented / temporal
+   - Draft garden entry in standard format
+        │
+        ▼ Editorial filter
+   Score < 8  → discard (most tickets — customer-specific, already documented)
+   Score 8-11 → queue for human review
+   Score 12+  → auto-submit with human spot-check
+        │
+        ▼ Duplicate check (retrieval API)
+   Query garden with ticket summary text
+   Similarity > threshold → mark as REVISE candidate, not new entry
+        │
+        ▼ Human review gate (for score 8-11)
+   Accept / Edit / Reject
+        │
+        ▼ Garden entry committed and indexed
+```
+
+### Unique challenges
+
+**Ticket grouping is critical.** Without it: 200 LLM calls about the same issue,
+200 near-duplicate entries. Cluster first using cheap similarity before touching an LLM.
+One cluster = one entry attempt.
+
+**Generalisation is the hardest step.** Support tickets are hyper-specific. The LLM
+must abstract from "our prod cluster" to "Quarkus 3.x when X condition holds." The LLM
+is very good at this — it is essentially summarisation + abstraction — but the prompt
+must be explicit about the generalisation requirement.
+
+**Signal-to-noise ratio is low.** Expect 5–10% of tickets to produce garden-quality
+entries. The rest fail the editorial bar: already documented, customer-specific
+environment, resolved by config not code, too narrow to be universal. This is fine —
+the pipeline is cheap once grouped, and the 10% that pass are high-value real-world
+knowledge.
+
+**"Fixed in newer version" tickets become temporal knowledge.** Ticket thread contains
+both symptom AND resolution version. These produce temporal/evolutionary entries:
+"In Quarkus 3.8.x, this bug exists; fixed in 3.9.0." High value, often missed.
+
+**PII removal is mandatory before any LLM call.** Customer names, company names,
+account IDs, internal URLs, email addresses — all must be stripped or pseudonymised
+before the ticket content reaches the LLM. Can be done with pattern-matching before
+the LLM step.
+
+### Expected entry types from support tickets
+
+| Ticket type | Garden entry type | Dimension |
+|---|---|---|
+| Unexpected behaviour, resolved by workaround | Gotcha | Discovery |
+| Bug fixed in patch version | Temporal note (version X broken, Y fixed) | Temporal |
+| "How do I do X?" → resolution teaches a pattern | Technique | Discovery |
+| Integration fails in specific combo | Gotcha | Discovery |
+| Performance degradation pattern | Risk + Gotcha | Risk / Discovery |
+| Migration issue during customer upgrade | Transformation gotcha | Transformation |
+
+---
+
 ## Open Questions for Second Opinion
 
 1. Is the 10-dimension taxonomy complete? Are there important dimensions missing?
 
-2. Should gardens be organised by knowledge type (proposed above) or by technology
-   domain (current assumption)? Or is a matrix (type × domain) the right structure?
+2. **Knowledge-type-first organisation confirmed?** Should gardens be named by knowledge
+   type (discovery-garden, patterns-garden) or by technology domain (jvm-garden,
+   tools-garden)? This is the most architecturally significant open question.
 
 3. For migration knowledge specifically: is "Transformation" a distinct dimension or
    is it a sub-type within "Pattern"?
 
-4. What's the right editorial bar for each dimension? Discovery has a clear bar.
-   Migration patterns, assessment frameworks, and risk knowledge are less clear.
+4. What's the right editorial bar for each dimension? Discovery has a clear bar
+   ("would a skilled developer be surprised?"). Migration patterns, assessment
+   frameworks, and risk knowledge are less clear.
 
 5. How do cross-dimension queries work at retrieval time? How does the service know
    which gardens to fan out to for a given query?
@@ -312,3 +480,32 @@ retrieval, is the only architecture that works at this scope.
 6. Is there a natural order of maturity — start with discovery and patterns, add
    assessment and transformation later? Or does the taxonomy need to be established
    first before any garden is built?
+
+7. For support ticket ingestion: what is the right clustering algorithm before LLM
+   processing? How do you prevent the same underlying issue generating duplicate entries
+   from different ticket clusters?
+
+8. **Modality × dimension mapping** — should the capture modality be recorded as
+   metadata on each entry? (session-captured gotcha vs ticket-sourced gotcha have
+   different provenance and possibly different trust levels.)
+
+---
+
+## Session Notes
+
+*Running log of decisions and insights as the design evolves.*
+
+**2026-04-16:**
+- **Major finding:** knowledge-type-first organisation, not technology-domain-first.
+  Technology domain is metadata / filter, not structure. Top-level canonical gardens
+  should be named by knowledge type.
+- **Code examples garden taxonomy parked.** The taxonomy should follow from the
+  knowledge-type framework, not precede it.
+- **Support ticket ingestion** identified as a fourth capture modality (alongside
+  session capture, code mining, migration capture). Customer-sourced knowledge,
+  different epistemic source from developer-sourced.
+- **Migration as a distinct modality** — not just "more gotchas" but structured
+  capture during migration projects, feeds transformation + risk dimensions
+  specifically.
+- **Scope confirmed as beyond Java/Quarkus** — the framework must apply to any
+  technology, any migration type, any organisation.
