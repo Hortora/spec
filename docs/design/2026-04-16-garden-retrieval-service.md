@@ -389,18 +389,103 @@ Target: GraalVM native image. Implications:
 
 ---
 
-## Sparse Model Upgrade Path
+## Sparse Model
 
-No code changes required at any scale. Config change in Qdrant only.
+`prithivida/Splade_PP_en_v1` (Apache 2.0). ONNX model run client-side via ONNX Runtime
+Java binding. No corpus statistics — scales identically from 100 to 1M entries.
 
-| Scale | Sparse model | Notes |
-|-------|-------------|-------|
-| Any | `Qdrant/bm25` (FastEmbed) | Default, Apache 2.0, Qdrant manages corpus stats |
-| 1M+ | `prithivida/Splade_PP_en_v1` (FastEmbed) | Learned sparse, Apache 2.0, better semantic coverage |
+NAVER's original SPLADE models (naver/splade-v3 etc.) are **CC-BY-NC-SA — non-commercial**.
+Do not use in production.
 
-To upgrade: change the Qdrant collection sparse vector config and reindex. Java service unchanged.
+---
 
-NAVER's original SPLADE models (naver/splade-v3 etc.) are **CC-BY-NC-SA — non-commercial**. Do not use in production.
+## Federation
+
+Each garden is an independent stack. Retrieval federation is service-to-service HTTP —
+no local clone of the parent garden required for upstream search.
+
+### Per-garden stack
+
+```
+garden/
+  ├── git repo          ← entries, SCHEMA.md (source of truth, captures go here)
+  ├── Qdrant            ← vector index for this garden's entries only
+  └── garden-retrieval  ← REST API + MCP server
+```
+
+`init_garden.py` generates a `docker-compose.yml` for the full local stack:
+
+```yaml
+services:
+  qdrant:
+    image: qdrant/qdrant
+    volumes: ["./qdrant_storage:/qdrant/storage"]
+    ports: ["6333:6333", "6334:6334"]
+
+  garden-retrieval:
+    image: hortora/garden-retrieval
+    environment:
+      QDRANT_HOST: qdrant
+      GARDEN_PATH: /garden
+    ports: ["8090:8090"]
+    volumes: [".:/garden"]
+    depends_on: [qdrant]
+```
+
+### Client config
+
+`~/.claude/garden-config.toml` maps garden names to both local paths (for git operations)
+and retrieval URLs (for search):
+
+```toml
+[[gardens]]
+name = "jvm-garden"
+path = "~/.hortora/jvm-garden"
+retrieval_url = "https://api.hortora.io/jvm"    # canonical, publicly hosted
+
+[[gardens]]
+name = "my-private-garden"
+path = "~/work/my-garden"
+retrieval_url = "http://localhost:8090"          # child, running locally
+```
+
+### Upstream chain walk
+
+Child garden's retrieval service searches its local Qdrant first. On upstream query:
+
+```
+GET https://api.hortora.io/jvm/api/search?q=hibernate+flush&mode=recall
+```
+
+Parent's SPLADE index is always current — no sync, no stale local copies of parent entries.
+
+### Non-duplication on submission
+
+When a PR arrives at a child garden, the child's retrieval service calls the parent's
+search API with the new entry's full text. SPLADE similarity at the parent catches
+semantic duplicates that Jaccard title/tag matching misses.
+
+```python
+# In validate_pr.py — semantic upstream check replaces Jaccard
+response = requests.get(f"{parent_url}/api/search",
+    params={"q": entry_text, "mode": "precision", "limit": 3})
+if any(r["relevance_score"] > DUPLICATE_THRESHOLD for r in response.json()):
+    log_error("Likely duplicate of upstream entry")
+```
+
+### Performance at scale
+
+| Metric | Estimate (beefy server, A100 GPU) |
+|--------|----------------------------------|
+| 1000 entries bulk import | 10–30 seconds |
+| Restart, 1M entries, indexes preserved | 3–8 minutes |
+| Restart from Qdrant snapshot | 10–20 minutes |
+| Full rebuild from source (1M entries) | 1–2 hours |
+| Search latency, recall mode (1M entries) | 15–40ms |
+| Search latency, precision mode (1M entries) | 70–150ms |
+
+Qdrant snapshots are the catastrophic recovery mechanism at 1M entries — not full
+re-embedding. Schedule daily snapshots; retain the last N.
 
 ---
 
