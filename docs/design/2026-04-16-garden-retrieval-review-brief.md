@@ -7,11 +7,31 @@ challenges, and gaps we may have missed.
 
 ## The Problem
 
-A knowledge garden of short markdown entries (~50–200 lines each) capturing non-obvious
-developer knowledge — gotchas, techniques, undocumented behaviours. Each entry has YAML
-frontmatter with structured metadata (domain, type, editorial score 1–15, tags, stack).
+**Two distinct gardens, same infrastructure:**
 
-The retrieval requirement: given a natural language symptom description ("my Hibernate
+**Garden 1 — Knowledge garden:** Short markdown entries (~50–200 lines) capturing
+non-obvious developer knowledge — gotchas, techniques, undocumented behaviours. Editorial
+bar: only what would genuinely surprise a skilled developer. Prose-centric.
+
+**Garden 2 — Code examples garden:** Minimal, use-case-driven code snippets (~20–50
+lines). Entry point: "I want to support multiple databases for my persistence layer" →
+return 3–5 working minimal examples to copy. Code-centric. No editorial bar — any valid
+working minimal example qualifies. Populated primarily by a **code miner** (see below).
+
+**Code Miner:** A CLI tool that points at a codebase, uses JavaParser (AST analysis) to
+discover pattern instances (builders, multi-datasource configs, test patterns, etc.), then
+uses an LLM (Claude API or Ollama) to rewrite each instance as a minimal teachable
+example. Optional human review gate before submission. Handles duplicate detection by
+querying the retrieval API before submitting.
+
+Both gardens use the same Qdrant + `garden-retrieval` Quarkus service infrastructure —
+different Qdrant collections, potentially different embedding models.
+
+---
+
+## The Retrieval Problem
+
+**Knowledge garden:** given a natural language symptom description ("my Hibernate
 callback isn't firing when I expect it to"), find the 3–8 most relevant entries. Two
 consumer modes:
 
@@ -218,22 +238,47 @@ garden-retrieval service).
    transparently proxy MCP calls to the parent's retrieval service, making federation
    invisible to the end user. Not yet designed.
 
+6. **Embedding model for code examples garden.** `nomic-embed-text` embeds NL use-case
+   descriptions against NL queries — probably adequate. A code-specific model
+   (`jinaai/jina-embeddings-v2-base-code`, Apache 2.0) may improve retrieval when
+   queries contain code fragments ("I want to use @DataSource annotation"). Not benchmarked.
+
+7. **Code miner LLM quality.** Minimisation quality (rewriting production code to minimal
+   examples) varies significantly between models. Claude API gives best results;
+   smaller local Ollama models (codellama, mistral) are lower quality but air-gapped.
+   No quality benchmark exists yet.
+
+8. **Code example licensing.** Mining from open-source projects: Apache 2.0 and MIT
+   sources are clearly fine. GPL projects need care. The miner's `--dry-run` mode and
+   human review gate allow licence inspection, but no automated licence check is designed.
+
+9. **Code miner pattern library completeness.** JavaParser AST heuristics for pattern
+   detection (builders, multi-datasource, etc.) will produce false positives and miss
+   some instances. Pattern library is user-extensible but starts with ~10 patterns.
+   Quality improves with tuning over time.
+
 ---
 
 ## What We Are Asking For
 
 Independent review of:
 
-1. Is the stack appropriate for the use case? Are there simpler alternatives we've
-   overlooked?
+1. Is the retrieval stack (Qdrant + SPLADE + Ollama + Quarkus native) appropriate?
+   Are there simpler alternatives we've overlooked?
 
 2. Are the critical validation items (ONNX + native image, LangChain4J dual-client,
    IDF modifier + SPLADE interaction) real blockers, or are we overestimating the risk?
 
-3. Is SPLADE the right sparse model for short technical content, or should we benchmark
-   BM25 first?
+3. Is SPLADE the right sparse model for short technical entries (50–200 lines), or
+   should we benchmark BM25 first given the highly specific technical vocabulary?
 
-4. Is the per-garden Qdrant service model the right federation approach, or is there
+4. For the code examples garden: is `nomic-embed-text` adequate for use-case-driven
+   retrieval, or does code-specific embedding meaningfully improve recall?
+
+5. Is the code miner's LLM-minimisation approach the right way to populate a code
+   examples garden, or is there a better pattern for this?
+
+6. Is the per-garden Qdrant service model the right federation approach, or is there
    a simpler design that achieves the same goals?
 
-5. Any performance, scaling, or operational concerns we haven't accounted for?
+7. Any performance, scaling, or operational concerns we haven't accounted for?
