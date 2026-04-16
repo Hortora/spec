@@ -81,7 +81,7 @@ Two filters applied to all candidate dimensions:
 |---|---|---|---|
 | `discovery-garden` | Claude sessions + ticket mining | Non-obvious facts that prevent wasted hours | ✅ Existing Hortora garden (rename + restructure) |
 | `patterns-garden` | Code mining + Claude sessions | Copyable working solutions | ⚠️ Code miner designed, not built |
-| `temporal-garden` | Release note mining + sessions | Version-specific facts that change code correctness | ❌ Not started |
+| `evolution-garden` | Release note mining + sessions | Version-specific facts that change code correctness | ❌ Not started |
 | `risk-garden` | Ticket + post-mortem mining | Documented failure modes | ❌ Not started |
 | `decisions-garden` | Mine existing ADRs + sessions | Prevents AI suggesting already-rejected approaches | ❌ Not started |
 
@@ -102,7 +102,7 @@ Technology domain is a metadata filter within each garden, not a structural orga
 ```
 discovery_java        discovery_tools       discovery_python
 patterns_quarkus      patterns_java
-temporal_java         temporal_quarkus
+evolution_java        evolution_quarkus
 risk_java             risk_quarkus
 decisions_jvm
 ```
@@ -256,7 +256,7 @@ the retrieval service and the LLM doing the coding.
 **The "which garden" routing problem:**
 - "I want to code a Builder pattern" → patterns-garden
 - "My Hibernate callback isn't firing" → discovery-garden
-- "How do I migrate from Quarkus 2 to 3?" → transformation-garden + temporal-garden
+- "How do I migrate from Quarkus 2 to 3?" → transformation-garden + evolution-garden
 - Who decides? The AI? A router? The user? The garden-config?
 
 ### Key questions to resolve

@@ -218,7 +218,7 @@ patterns-garden/        ← design, architectural, migration, integration patter
 assessment-garden/      ← evaluation frameworks, readiness checklists
 transformation-garden/  ← migration processes, transformation strategies, sequencing
 risk-garden/            ← failure modes, recovery patterns, post-mortems
-temporal-garden/        ← version paths, deprecation, evolution trajectories
+evolution-garden/        ← version paths, deprecation, evolution trajectories
 ```
 
 Code examples fit **inside** `patterns-garden` — not a top-level concept.
@@ -603,7 +603,7 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
   |---|---|---|
   | `discovery-garden` | Claude sessions + ticket mining | Non-obvious facts that prevent wasted hours |
   | `patterns-garden` | Code mining + Claude sessions | Copyable working solutions |
-  | `temporal-garden` | Release note mining + sessions | Version-specific facts that change code correctness |
+  | `evolution-garden` | Release note mining + sessions | Version-specific facts that change code correctness |
   | `risk-garden` | Ticket + post-mortem mining | Documented failure modes |
   | `decisions-garden` | Mine existing ADRs + sessions | Prevents AI suggesting rejected approaches |
 
@@ -616,12 +616,12 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
 - **Migration knowledge distributes across the 5** (no migration-garden needed):
   - Migration gotchas → discovery-garden
   - Strangler Fig, Branch by Abstraction → patterns-garden
-  - Quarkus 2→3 breaking changes → temporal-garden
+  - Quarkus 2→3 breaking changes → evolution-garden
   - Dual-write ordering failures → risk-garden
 
 - **Knowledge-type-first confirmed with 5 gardens** — technology domain is a
   metadata payload filter within each garden, not a structural organiser.
-  Qdrant collection naming: `discovery_java`, `patterns_quarkus`, `temporal_java` etc.
+  Qdrant collection naming: `discovery_java`, `patterns_quarkus`, `evolution_java` etc.
 
 - **Consumption layer identified as design gap** — how does an AI know WHICH gardens
   to query? Proactive vs reactive retrieval not yet designed. Open problem in
