@@ -14,8 +14,8 @@ and what needs to happen before it can be built or finalised.
 | # | Area | Status | Blocking |
 |---|---|---|---|
 | 1 | Scalable RAG backend | ✅ Designed, ⚠️ validation needed | 3 critical validations |
-| 2 | What to capture (knowledge model) | ⚠️ Draft, needs finalisation | Taxonomy agreement |
-| 3 | Capture modalities and structures | ⚠️ Draft | Taxonomy agreement (Area 2) |
+| 2 | What to capture (knowledge model) | ✅ Settled — 5 gardens | — |
+| 3 | Capture modalities and structures | ⚠️ Draft | — (Area 2 now settled) |
 | 4 | Knowledge lifecycle and governance | ❌ Not designed | — |
 | 5 | Consumption and integration layer | ❌ Not designed | Area 1 validation |
 | 6 | Measurement and evaluation | ❌ Not designed | — |
@@ -64,28 +64,48 @@ compare BM25 vs SPLADE for this specific content profile.
 
 ## Area 2: What to Capture (Knowledge Model)
 
-**What it is:** What types of knowledge go into the garden ecosystem. The 10-dimension
-taxonomy. Research-backed.
+**What it is:** What types of knowledge go into the garden ecosystem.
 
 **Reference:** `docs/design/2026-04-16-knowledge-dimensions.md`
 
-**Status:** 10 dimensions identified and described. Top-level taxonomy not yet agreed.
-Code examples garden taxonomy parked pending taxonomy agreement.
+**Status:** ✅ SETTLED. Two filters applied (auto-capturable + RAG-able). 10 dimensions
+reduced to 5 gardens. Knowledge-type-first organisation confirmed.
 
-### The 10 dimensions (current draft)
+### The 5 gardens (SETTLED)
 
-| # | Dimension | Description | Current status |
+Two filters applied to all candidate dimensions:
+1. **Capture must be automated** — session discovery, code mining, or ticket/source mining. No human manual effort.
+2. **Must improve AI output when retrieved** — genuinely RAG-able, not process/methodology.
+
+| Garden | Auto-capture source | RAG value | Build status |
 |---|---|---|---|
-| 1 | Discovery | Gotchas, techniques, undocumented | ✅ Built (Hortora garden) |
-| 2 | Pattern | Design, architectural, migration, integration patterns | ⚠️ Draft (code examples) |
-| 3 | Decision | ADRs, why-not-X decisions | ⚠️ Exists as files, not RAG-indexed |
-| 4 | Assessment | Evaluation frameworks, readiness checklists | ❌ Not started |
-| 5 | Transformation | Migration processes, sequencing, cutover | ❌ Not started |
-| 6 | Domain / semantic | Business vocabulary, ubiquitous language | ❌ Not started |
-| 7 | Constraint | Regulatory, SLA, compliance, operational | ❌ Not started |
-| 8 | Temporal / evolutionary | Version paths, deprecation, EOL timelines | ❌ Not started |
-| 9 | Risk / failure | Failure modes, recovery patterns, post-mortems | ❌ Not started |
-| 10 | Organisational | Team conventions, failure history, operational context | ❌ Not started |
+| `discovery-garden` | Claude sessions + ticket mining | Non-obvious facts that prevent wasted hours | ✅ Existing Hortora garden (rename + restructure) |
+| `patterns-garden` | Code mining + Claude sessions | Copyable working solutions | ⚠️ Code miner designed, not built |
+| `temporal-garden` | Release note mining + sessions | Version-specific facts that change code correctness | ❌ Not started |
+| `risk-garden` | Ticket + post-mortem mining | Documented failure modes | ❌ Not started |
+| `decisions-garden` | Mine existing ADRs + sessions | Prevents AI suggesting already-rejected approaches | ❌ Not started |
+
+### What was dropped and why
+
+| Dropped | Reason |
+|---|---|
+| Assessment | Not auto-capturable; process not fact; not RAG-able |
+| Domain / semantic vocabulary | Requires human business knowledge to capture |
+| Org-specific constraints | Not auto-capturable |
+| Organisational / contextual | Fails both filters |
+| Transformation (as standalone) | Distributes: gotchas → discovery, patterns → patterns, facts → temporal, failures → risk |
+
+### Qdrant collection naming (knowledge-type-first)
+
+Technology domain is a metadata filter within each garden, not a structural organiser.
+
+```
+discovery_java        discovery_tools       discovery_python
+patterns_quarkus      patterns_java
+temporal_java         temporal_quarkus
+risk_java             risk_quarkus
+decisions_jvm
+```
 
 ### Major finding to validate
 

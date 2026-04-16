@@ -592,6 +592,37 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
   is a differentiator (most RAG systems don't do it); security/risk knowledge has
   outsized impact.
 
+- **TWO FILTERS applied to all 10 dimensions — SETTLED DECISION:**
+  Only dimensions passing BOTH survive:
+  1. Capture can be automated (session discovery OR code mining OR ticket/source mining)
+  2. Retrieving it makes the AI produce better code/advice (genuinely RAG-able)
+
+- **10 dimensions → 5 gardens (SETTLED):**
+
+  | Garden | Primary auto-capture | RAG value |
+  |---|---|---|
+  | `discovery-garden` | Claude sessions + ticket mining | Non-obvious facts that prevent wasted hours |
+  | `patterns-garden` | Code mining + Claude sessions | Copyable working solutions |
+  | `temporal-garden` | Release note mining + sessions | Version-specific facts that change code correctness |
+  | `risk-garden` | Ticket + post-mortem mining | Documented failure modes |
+  | `decisions-garden` | Mine existing ADRs + sessions | Prevents AI suggesting rejected approaches |
+
+- **Dropped (failed one or both filters):**
+  - Assessment — not auto-capturable; process not fact, not RAG-able
+  - Domain/semantic vocabulary — requires human business knowledge
+  - Org-specific constraints — not auto-capturable
+  - Organisational/contextual — fails both filters
+
+- **Migration knowledge distributes across the 5** (no migration-garden needed):
+  - Migration gotchas → discovery-garden
+  - Strangler Fig, Branch by Abstraction → patterns-garden
+  - Quarkus 2→3 breaking changes → temporal-garden
+  - Dual-write ordering failures → risk-garden
+
+- **Knowledge-type-first confirmed with 5 gardens** — technology domain is a
+  metadata payload filter within each garden, not a structural organiser.
+  Qdrant collection naming: `discovery_java`, `patterns_quarkus`, `temporal_java` etc.
+
 - **Consumption layer identified as design gap** — how does an AI know WHICH gardens
   to query? Proactive vs reactive retrieval not yet designed. Open problem in
   literature too.
