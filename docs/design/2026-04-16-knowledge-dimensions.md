@@ -491,21 +491,109 @@ the LLM step.
 
 ---
 
+## Academic and Industry Research Findings
+
+*What does the literature say about RAG knowledge capture for software engineering?*
+
+### What evidence says about knowledge types for code generation
+
+**Few-shot retrieval beats raw documentation.** CEDAR (Nashid et al., ICSE 2023)
+showed that highly relevant retrieved examples dramatically outperform random
+selections — embedding quality and perplexity of examples matter more than count.
+GPT-4o improved from 47.1% to 57.5% pass@1 with good few-shot examples; diminishing
+returns after 5.
+
+**Mixed knowledge types outperform single source.** Combining examples + gotchas +
+Q&A beats any single type. Bug report summarisation research (arXiv 2512.00325) showed
+integrating code snippets with bug summaries improves quality by 7.5–58.2% over
+text-only.
+
+**Security/vulnerability context is highest-signal.** Structured vulnerability context
+reduced GPT-4o vulnerability rate from 41.3% to 5.2% — an 80% reduction. Suggests
+risk/failure knowledge dimension has outsized impact on code safety.
+
+**What developers actually search for** (Springer empirical study, 235 engineers,
+5 continents): debugging/bug fixing is hardest and most searched, followed by
+third-party code reuse, testing, and database queries. Validates priority:
+**error/fix knowledge first, then examples, then patterns.**
+
+### Validation of the 10-dimension framework
+
+Basili's Experience Factory (1992, foundational SE knowledge management) categorises
+organisational knowledge as: locally calibrated models (→ Pattern), proven processes
+(→ Transformation), relevant product components (→ Code examples), and quality
+baselines (→ Assessment). The 10 dimensions map onto this established model.
+
+Systematic mapping of SE taxonomies (2017): most knowledge is classified via hierarchy
+(53%) or faceted analysis (39%). Suggests garden structure should support faceted
+filtering (knowledge type × domain × technology) not just hierarchy.
+
+### The knowledge staleness gap
+
+"Knowledge decay problem" (RAG About It, 2026): knowledge freshness is rarely managed
+operationally. No academic paper directly measures knowledge half-life in software,
+but evidence suggests API documentation becomes stale in 12–18 months. The research
+community treats **outdated knowledge as a security vulnerability**, not a convenience
+issue. Current garden design (staleness_threshold field, harvest REVIEW) is ahead of
+what most production RAG systems do — this is a differentiator.
+
+### Meta's tribal knowledge work (2026)
+
+Meta used 50+ specialised AI agents to map tribal knowledge in large-scale data
+pipelines — reading every file to extract: gotchas, workarounds, technical debt,
+decision rationale. Validates: the discovery dimension is real, automated mining is
+viable at scale, and the knowledge that most helps AI assistants is the knowledge
+that currently lives only in developers' heads.
+
+### Stack Overflow quality findings
+
+StaQC dataset (148K Python, 120K SQL Q&A pairs): high-quality Q&A with runnable code
+examples outperforms documentation. However: most low-quality SO questions get ignored
+in practice — RAG systems trained on SO need aggressive quality filtering. Validates
+the editorial bar approach.
+
+### Key gap identified by research
+
+**Context window management** — research shows 5 retrieved examples is about the
+optimum; more is not better. The "recall mode" (return 5–8 full entries for LLM to
+read) aligns with this. The LLM reranking approach is validated. What's not yet
+designed: how does an AI assistant know WHICH gardens to query for a given coding task?
+Proactive knowledge push vs reactive retrieval is an open problem in the literature.
+
+---
+
 ## Session Notes
 
 *Running log of decisions and insights as the design evolves.*
 
 **2026-04-16:**
+
 - **Major finding:** knowledge-type-first organisation, not technology-domain-first.
   Technology domain is metadata / filter, not structure. Top-level canonical gardens
-  should be named by knowledge type.
+  should be named by knowledge type (discovery-garden, patterns-garden) not technology
+  (jvm-garden, tools-garden).
+
 - **Code examples garden taxonomy parked.** The taxonomy should follow from the
   knowledge-type framework, not precede it.
-- **Support ticket ingestion** identified as a fourth capture modality (alongside
-  session capture, code mining, migration capture). Customer-sourced knowledge,
-  different epistemic source from developer-sourced.
-- **Migration as a distinct modality** — not just "more gotchas" but structured
-  capture during migration projects, feeds transformation + risk dimensions
-  specifically.
-- **Scope confirmed as beyond Java/Quarkus** — the framework must apply to any
+
+- **Support ticket ingestion** identified as fourth capture modality (alongside
+  session capture, code mining, migration capture). Customer-sourced knowledge.
+  Pipeline: pre-filter → cluster similar tickets → LLM normalise → score → dedup →
+  human review. Key challenge: generalisation from specific to universal.
+
+- **Migration as distinct modality** — structured capture during migration projects,
+  feeds transformation + risk dimensions primarily.
+
+- **Scope confirmed as beyond Java/Quarkus** — framework must apply to any
   technology, any migration type, any organisation.
+
+- **Research validates core design:** few-shot retrieval beats documentation; mixed
+  knowledge types beat single source; 5 examples is optimum; staleness management
+  is a differentiator (most RAG systems don't do it); security/risk knowledge has
+  outsized impact.
+
+- **Consumption layer identified as design gap** — how does an AI know WHICH gardens
+  to query? Proactive vs reactive retrieval not yet designed. Open problem in
+  literature too.
+
+- **Structured plan needed** — see `2026-04-16-garden-ecosystem-plan.md`.
