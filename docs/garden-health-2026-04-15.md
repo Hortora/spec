@@ -154,12 +154,52 @@ layer is known with confidence.
   `root_cause_layer` added as optional field
 - `forage/submission-formats.md` — entry templates updated
 
-**Action needed:** Write `garden_domain_migrate.py` script (similar to tag backfill plan):
-- Read each entry, remap domain value, write back
-- `--dry-run` mode
-- One commit per old domain value for clean git history
+**Action needed:** Write `garden_migrate.py` — a single consolidated migration script
+covering all four operations below. Run once; one PR; clean git history.
 
-**Note:** Directory structure (`java/`, `quarkus/`, `tools/`) can remain for GitHub
+### Consolidated migration: `garden_migrate.py`
+
+**Phase 1 — Rule-based (fast, no LLM cost):**
+
+1. **Remap `domain`** to coarse values (quarkus → jvm, etc.)
+
+2. **Backfill `tags`** from title + stack using rule-based vocabulary match.
+   Build vocabulary from existing non-empty tags in 63 new-format entries first.
+
+3. **Add `root_cause_layer: ""`** as empty optional field — populated progressively
+   as knowledge grows.
+
+**Phase 2 — LLM-assisted (one-off enrichment, costs tokens but high value):**
+
+4. **Reconstruct WHY fields** from existing entry body text. The prose is already
+   there — the LLM extracts it into structured fields:
+
+   | Field | Extracted from |
+   |---|---|
+   | `rationale` | `### Why this is non-obvious` + `### Fix` sections |
+   | `alternatives_considered` | `### What was tried (didn't work)` section |
+   | `constraints` | Context sentences ("only when...", "only affects...") in body |
+   | `invalidation_triggers` | Version/stack hints ("fixed in vX", "only on macOS") |
+
+   These fields were added to forage CAPTURE to prevent the "red hat bureaucracy"
+   problem — decisions without context, recreating the same reasoning every session.
+   Existing entries already contain this information in prose; migration extracts it
+   into retrievable structured form.
+
+   Only populate fields with clear signal. Leave blank when ambiguous. Run
+   `--dry-run` and human-review a sample before full corpus run.
+
+**Script interface:**
+```bash
+garden_migrate.py ~/.hortora/garden \
+  --remap-domain \
+  --backfill-tags --tag-vocab /tmp/vocab.txt \
+  --add-root-cause-layer \
+  --extract-why-fields --llm-model claude-3-5-haiku \  # Phase 2
+  --dry-run     # always review first
+```
+
+**Note:** Directory structure (`java/`, `quarkus/`, `tools/`) stays for GitHub
 browsability. YAML `domain` field and directory name are decoupled.
 
 ---
