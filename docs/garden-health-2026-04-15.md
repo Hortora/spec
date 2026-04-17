@@ -154,49 +154,81 @@ layer is known with confidence.
   `root_cause_layer` added as optional field
 - `forage/submission-formats.md` — entry templates updated
 
-**Action needed:** Write `garden_migrate.py` — a single consolidated migration script
-covering all four operations below. Run once; one PR; clean git history.
+**Action needed:** Write `garden_migrate.py` — a single consolidated migration script.
+Run once; one PR; clean git history.
 
-### Consolidated migration: `garden_migrate.py`
+### What each phase improves
 
-**Phase 1 — Rule-based (fast, no LLM cost):**
+**Critical distinction established by literature review (2026-04-17):**
+
+SPLADE and BM25 retrieval optimise for term overlap and semantic similarity — they
+find entries based on symptom, stack, tags, root cause. WHY fields (rationale,
+alternatives_considered, why_non_obvious) are largely invisible to the retriever.
+
+This means the two phases address different problems:
+
+| Phase | Improves | How |
+|---|---|---|
+| Phase 1 | **Retrieval quality** — finding the right entry | Correct domain partitioning, populated tags, accurate stack matching |
+| Phase 2 | **Comprehension quality** — what the LLM does with the retrieved entry | Structured WHY context so the LLM understands reasoning, not just the fix |
+
+Phase 1 is higher priority: it determines whether the right entry is found at all.
+Phase 2 enriches what happens after retrieval — the LLM applies the fix with
+understanding rather than cargo-culting it. Both matter; Phase 1 comes first.
+
+---
+
+### Phase 1 — Rule-based, retrieval improvement (HIGH priority, no LLM cost)
 
 1. **Remap `domain`** to coarse values (quarkus → jvm, etc.)
+   — fixes Qdrant partition routing, prevents misrouted queries
 
 2. **Backfill `tags`** from title + stack using rule-based vocabulary match.
    Build vocabulary from existing non-empty tags in 63 new-format entries first.
+   — tags are what SPLADE matches on; empty tags are invisible to retrieval
 
-3. **Add `root_cause_layer: ""`** as empty optional field — populated progressively
-   as knowledge grows.
+3. **Add `root_cause_layer: ""`** as empty optional field — populated progressively.
+   — structural only; no retrieval impact until populated
 
-**Phase 2 — LLM-assisted (one-off enrichment, costs tokens but high value):**
+---
 
-4. **Reconstruct WHY fields** from existing entry body text. The prose is already
-   there — the LLM extracts it into structured fields:
+### Phase 2 — LLM-assisted, comprehension improvement (LOWER priority, costs tokens)
 
-   | Field | Extracted from |
-   |---|---|
-   | `rationale` | `### Why this is non-obvious` + `### Fix` sections |
-   | `alternatives_considered` | `### What was tried (didn't work)` section |
-   | `constraints` | Context sentences ("only when...", "only affects...") in body |
-   | `invalidation_triggers` | Version/stack hints ("fixed in vX", "only on macOS") |
+4. **Reconstruct WHY fields** from existing entry body text.
 
-   These fields were added to forage CAPTURE to prevent the "red hat bureaucracy"
-   problem — decisions without context, recreating the same reasoning every session.
-   Existing entries already contain this information in prose; migration extracts it
-   into retrievable structured form.
+   These fields do NOT improve retrieval — SPLADE/BM25 don't use them to find entries.
+   They improve what the LLM does AFTER retrieval: understanding why a fix works,
+   not just what the fix is. This prevents cargo-culting (blindly copying a fix
+   without understanding its conditions) and prevents re-deriving the same reasoning
+   every session ("red hat bureaucracy with agentic powers").
 
-   Only populate fields with clear signal. Leave blank when ambiguous. Run
-   `--dry-run` and human-review a sample before full corpus run.
+   The prose is already in existing entries — the LLM extracts it into structured form:
+
+   | Field | Extracted from | What it prevents |
+   |---|---|---|
+   | `rationale` | `### Why this is non-obvious` + `### Fix` | Cargo-culting the fix without understanding why |
+   | `alternatives_considered` | `### What was tried (didn't work)` | Re-trying approaches already shown not to work |
+   | `constraints` | Context sentences in body | Applying the fix in the wrong environment |
+   | `invalidation_triggers` | Version/stack hints in body | Using stale knowledge past its validity |
+
+   Only populate fields with clear signal in the body. Leave blank when ambiguous.
+   Run `--dry-run` and human-review a sample (10–20 entries) before full corpus run.
+
+---
 
 **Script interface:**
 ```bash
+# Phase 1 only (do this first — fixes retrieval immediately)
 garden_migrate.py ~/.hortora/garden \
   --remap-domain \
   --backfill-tags --tag-vocab /tmp/vocab.txt \
   --add-root-cause-layer \
-  --extract-why-fields --llm-model claude-3-5-haiku \  # Phase 2
-  --dry-run     # always review first
+  --dry-run
+
+# Phase 2 (run after Phase 1 is merged — enriches comprehension)
+garden_migrate.py ~/.hortora/garden \
+  --extract-why-fields --llm-model claude-3-5-haiku \
+  --dry-run
 ```
 
 **Note:** Directory structure (`java/`, `quarkus/`, `tools/`) stays for GitHub
