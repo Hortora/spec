@@ -10,6 +10,8 @@ Scan of `Hortora/garden` main branch. 240 actual entries across 13 domains.
 |-------|--------|--------|
 | Truncated entries | ⚠ 1 found | GE-0107 — body cut off mid-sentence |
 | Empty tags `[]` | ⚠ 123/240 | Legacy entries predate tag requirement |
+| **domain field too fine-grained** | ⚠ **All 240** | **Must migrate to coarse values (jvm/python/tools etc.) — see 2026-04-16 field design decision** |
+| **root_cause_layer field missing** | ℹ All 240 | New optional field — can be added progressively |
 | Legacy GE-ID format | ℹ 177/240 | GE-0NNN vs GE-YYYYMMDD-xxxxxx |
 | `_summaries/` stubs | ✅ 185 — all 1-line | Correct by design |
 | CHECKED.md size | ℹ 4,925 lines | Scaling concern (see ADR-0004 in progress) |
@@ -126,6 +128,39 @@ This is the designed compact summary format for the retrieval index. The 1-line 
 `CHECKED.md` is 4,925 lines — each line is a pair comparison result from previous DEDUPE sweeps. At the current 240-entry count this is manageable, but the file grows O(n²) in entries. ADR-0004 (SQLite aggregate state) is in progress to address this before it becomes operational.
 
 See: `spec/docs/adr/` — ADR-0004 draft pending approval.
+
+---
+
+## Issue 3 — domain field migration required (all 240 entries)
+
+**Decision (2026-04-17):** The `domain` field must be coarse (Qdrant partition key only),
+not fine-grained technology classification. Fine-grained attribution is impossible to do
+reliably — a Drools bug running on Quarkus may live in the Drools engine, the
+quarkus-drools extension, or CDI lifecycle, and is often indeterminate at capture time.
+
+**Migration map:**
+```
+quarkus, java, drools, java-panama-ffm, casehub-engine, permuplate, apache-jexl → jvm
+python, beautifulsoup → python
+tools, claude-code, intellij-platform, electron, macos-native-appkit, scelight, approaches → tools
+```
+
+Technology precision moves to `stack` (already present as free text) and `tags` (being
+backfilled — see Issue 2). New optional field `root_cause_layer` added for when the
+layer is known with confidence.
+
+**What also needs updating:**
+- `forage/SKILL.md` — "Determine the domain" table rewritten to coarse domains;
+  `root_cause_layer` added as optional field
+- `forage/submission-formats.md` — entry templates updated
+
+**Action needed:** Write `garden_domain_migrate.py` script (similar to tag backfill plan):
+- Read each entry, remap domain value, write back
+- `--dry-run` mode
+- One commit per old domain value for clean git history
+
+**Note:** Directory structure (`java/`, `quarkus/`, `tools/`) can remain for GitHub
+browsability. YAML `domain` field and directory name are decoupled.
 
 ---
 

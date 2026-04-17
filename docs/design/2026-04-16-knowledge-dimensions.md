@@ -621,7 +621,46 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
 
 - **Knowledge-type-first confirmed with 5 gardens** — technology domain is a
   metadata payload filter within each garden, not a structural organiser.
-  Qdrant collection naming: `discovery_java`, `patterns_quarkus`, `evolution_java` etc.
+  Qdrant collection naming: `discovery_jvm`, `patterns_jvm`, `evolution_jvm` etc.
+
+- **FIELD DESIGN DECISION — domain must be coarse, not fine-grained (REQUIRES MIGRATION):**
+
+  Problem: `domain: quarkus` vs `domain: drools` vs `domain: quarkus-drools` is
+  unresolvable. A Drools bug running on Quarkus may be in Drools engine, the
+  quarkus-drools integration, or CDI lifecycle — often unknown at capture time,
+  sometimes genuinely ambiguous. Fine-grained domain classification cannot be done
+  reliably and shouldn't be attempted.
+
+  Solution — separate the two responsibilities `domain` was conflating:
+
+  | Field | Purpose | Values | Example |
+  |---|---|---|---|
+  | `domain` | Coarse Qdrant partition key ONLY | ~8 broad categories | `jvm` |
+  | `stack` | Honest multi-layer "what was running" | Free text, always multi-layer | `"Quarkus 3.9.x, Drools 8.44.0, quarkus-drools"` |
+  | `tags` | All relevant technology names | List, multi-layer | `[quarkus, drools, quarkus-drools, cdi]` |
+  | `root_cause_layer` | Which layer the bug lives in | Optional, fill when certain | `drools` |
+
+  Domain coarse values: `jvm`, `python`, `tools`, `web`, `data`, `infrastructure`,
+  `security`, `cloud`
+
+  Domain migration mapping (existing ~240 entries — scriptable):
+  ```
+  quarkus, java, drools, java-panama-ffm, casehub-engine, permuplate, apache-jexl → jvm
+  python, beautifulsoup → python
+  tools, claude-code, intellij-platform, electron, macos-native-appkit, scelight, approaches → tools
+  ```
+
+  THREE things require change:
+  1. **Existing ~240 garden entries** — `domain` field value migration (scriptable)
+  2. **forage SKILL.md** — "Determine the domain" table → coarse domains;
+     `root_cause_layer` added as optional field
+  3. **submission-formats.md** — entry templates updated; `root_cause_layer` optional
+
+  Directory structure (java/, quarkus/, tools/) stays for GitHub browsability.
+  The YAML `domain` field changes to coarse value. Directories and field decouple.
+
+  `root_cause_layer` — fill when certain which layer the bug lives in. Leave blank
+  when ambiguous. Entry is fully retrievable without it via stack and tags.
 
 - **Consumption layer identified as design gap** — how does an AI know WHICH gardens
   to query? Proactive vs reactive retrieval not yet designed. Open problem in
