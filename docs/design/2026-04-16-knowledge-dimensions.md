@@ -668,6 +668,35 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
 
 - **Structured plan needed** — see `2026-04-16-garden-ecosystem-plan.md`.
 
+- **Area 3 COMPLETE — all 5 garden capture pipelines designed (2026-04-17):**
+
+  | Garden | Primary capture | Secondary |
+  |---|---|---|
+  | `discovery-garden` | Session (forage) + ticket mining | ✅ Built |
+  | `decisions-garden` | Mine existing ADRs + new ADR webhook + session | ✅ Designed |
+  | `patterns-garden` | Code mining (JavaParser + LLM minimise) + session | ✅ Designed |
+  | `evolution-garden` | Release note/changelog mining + session | ✅ Designed |
+  | `risk-garden` | Ticket mining (risk classifier) + post-mortem mining | ✅ Designed |
+
+  **evolution-garden specifics:**
+  - Sources: GitHub releases, Maven Central, npm, PyPI, official migration guides
+  - Filter: breaking-change | deprecation (action needed) | new-capability. Skip bug fixes,
+    internal refactoring, minor additions
+  - New YAML fields: `from_version`, `changed_in`, `breaking: bool`, `migration_effort`
+  - `staleness_threshold: 1095` (3 years, longer than discovery)
+  - Trigger: GitHub release webhook (immediate) + nightly scan (non-webhook sources)
+
+  **risk-garden specifics:**
+  - Source 1: ticket mining — same pipeline as discovery, different LLM classifier
+    (risk = production harm at scale, not just non-obvious behaviour)
+  - Source 2: post-mortem documents — git-tracked markdown first, then GitHub Issues
+    with incident labels, then Notion/Confluence via API
+  - Generalisation step critical: "our service failed" → "connection pool exhaustion
+    under load when exceptions don't release connections"
+  - Community vs private split: universal patterns → community; org-specific → child garden
+  - New YAML fields: `failure_pattern`, `observed_at_scale`, `severity`, `mitigation`
+  - `staleness_threshold: 1825` (5 years — failure patterns are durable)
+
 - **LITERATURE CHECK — discovery entry format validation (2026-04-17):**
 
   No direct academic validation of the 12-field template exists. Strong indirect support.

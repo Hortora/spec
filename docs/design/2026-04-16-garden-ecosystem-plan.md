@@ -15,7 +15,7 @@ and what needs to happen before it can be built or finalised.
 |---|---|---|---|
 | 1 | Scalable RAG backend | ✅ Designed, ⚠️ validation needed | 3 critical validations |
 | 2 | What to capture (knowledge model) | ✅ Settled — 5 gardens | — |
-| 3 | Capture modalities and structures | ⚠️ Draft | — (Area 2 now settled) |
+| 3 | Capture modalities and structures | ✅ All 5 pipelines designed | — |
 | 4 | Knowledge lifecycle and governance | ❌ Not designed | — |
 | 5 | Consumption and integration layer | ❌ Not designed | Area 1 validation |
 | 6 | Measurement and evaluation | ❌ Not designed | — |
