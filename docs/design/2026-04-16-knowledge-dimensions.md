@@ -667,3 +667,40 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
   literature too.
 
 - **Structured plan needed** — see `2026-04-16-garden-ecosystem-plan.md`.
+
+- **LITERATURE CHECK — discovery entry format validation (2026-04-17):**
+
+  No direct academic validation of the 12-field template exists. Strong indirect support.
+
+  *What is validated:*
+  - Core structure (symptom, root cause, fix, context, stack, tags) maps directly to
+    Aamodt & Plaza CBR Problem+Solution+Outcome (1994) — 30 years of validation
+  - `constraints` field: supported by CBR adaptation and lessons-learned literature
+  - Metadata fields (stack, tags): validated by Stack Overflow retrieval research
+  - Hybrid structured+unstructured RAG: 13.1% better precision than prose alone
+
+  *Important nuance — WHY fields serve comprehension, not retrieval:*
+  - SPLADE/BM25 optimise for term overlap and semantic similarity, NOT reasoning
+  - `rationale`, `why_non_obvious`, `alternatives_considered` are largely invisible
+    to the retriever — they don't improve finding the right entry
+  - But: they significantly help the LLM that READS the retrieved entry — it
+    understands why the fix works and can apply context appropriately
+  - Conclusion: WHY fields are justified but their value is post-retrieval
+    (comprehension phase), not retrieval phase. Keep them optional, not required.
+
+  *Basili / Google SRE warning:*
+  - Both explicitly warn over-constrained templates reduce contribution rates
+  - Too many required fields → contributors stop contributing
+  - Validates current design: WHY fields are OPTIONAL (+1 bonus to score), not required
+
+  *Redundancy risk:*
+  - `rationale`, `why_non_obvious`, `alternatives_considered` overlap significantly
+  - From retrieval perspective: noise. From comprehension: different readers
+  - Watch for consolidation opportunity — three fields saying the same thing is waste
+
+  *The real risk is not format quality but adoption:*
+  - Literature says reuse is limited by distribution and process barriers, not structure
+  - Format is sound; make it as low-friction as possible to contribute
+
+  *Gap:* no published empirical comparison of template configurations for this use case.
+  The format is theoretically grounded but not benchmarked against simpler alternatives.
