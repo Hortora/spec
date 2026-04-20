@@ -782,3 +782,89 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
   belong only in private gardens" — the community level is where project-level ADRs
   (e.g., why Quarkus chose Vert.x, why Kubernetes chose etcd) live and provide value
   to that project's whole user community.
+
+- **PATTERNS-GARDEN SIGNIFICANTLY EXTENDED (2026-04-18) — observed architectural
+  patterns with provenance, suitability, variants, frequency, and trend:**
+
+  The patterns-garden is not just "known design patterns" (GoF, CQRS). It captures
+  **observed architectural patterns from real production codebases** — patterns
+  discovered by studying how projects actually solve structural problems, with enough
+  context for a developer to decide whether and how to apply them.
+
+  **Extended entry format for patterns-garden:**
+  - `observed_in: [{project, url, path, first_seen, last_seen}]` — provenance chain
+  - `suitability` — when this pattern works, when it doesn't, constraints
+  - `variants: [{name, description, tradeoffs}]` — base pattern + named adaptations
+  - `variant_frequency: {event-sourced: 31, in-memory: 12}` — which variants are winning
+  - `authors: [{github_handle, role: originator|adopter|innovator}]` — developer attribution
+  - `stability` — computed: consistent presence across major versions = durable pattern
+
+  **New capture modality: ecosystem mining (richer than code miner)**
+  The code miner finds pattern *instances* (builders, multi-datasource configs) and
+  minimises them to examples. Ecosystem mining finds the *architectural decisions* of
+  a project — what's pluggable, what's abstracted, why — and extracts them as patterns
+  with suitability guidance. These are different tasks requiring different LLM prompting.
+
+- **PROJECT REGISTRY — new concept (2026-04-18):**
+
+  A curated index of projects being monitored for pattern discovery. Each entry:
+  - Project URL, domain, primary language/framework
+  - `last_processed_commit` — for incremental processing and backfill tracking
+  - Developer contributors of interest (for attribution)
+
+  The registry is the corpus against which ecosystem mining runs. Starting with
+  well-known open-source projects in relevant domains (Hibernate, Quarkus, Spring,
+  Kubernetes, etc.).
+
+- **PATTERN EPIDEMIOLOGY — frequency, trend, developer attribution (2026-04-18):**
+
+  Patterns carry adoption analytics: how often a pattern and its variants appear
+  across the project registry, who championed it, and whether adoption is growing
+  or declining.
+
+  **Trend data design — critical decision:**
+  Store trend data as **timestamped events**, not aggregates. Two timestamps on every
+  data point:
+  - `observed_at` — the git commit date (when the pattern actually appeared in the world)
+  - `indexed_at` — when the system processed it
+
+  Using only `indexed_at` (the lazy default) makes historical backfill a migration.
+  Separating them makes backfill free — just insert events with historical `observed_at`.
+
+  **Mining strategy — start clean, retrofit history later:**
+  - **HEAD scan** — mine current state of all indexed projects (pattern presence + frequency)
+  - **Git blame on pattern files** — targeted attribution, cheap (not full history replay)
+  - **Event-driven going forward** — webhook/release triggers re-scan, trend accumulates naturally
+  - **Recency weighting** — recent adoption outranks old adoption in scoring
+  - **Stability signal** — patterns consistent across HEAD of many projects = durable, weight higher
+  - **Retrofittable** — full history can be backfilled later via major-version tag sampling;
+    idempotent detection makes this safe to run at any time, pause, and resume
+
+  **What you lose by starting clean:** pre-index trend history. Acceptable — "this
+  pattern peaked in 2019" requires distinguishing "still used" from "never cleaned up",
+  which is too noisy to get right reliably from raw git history.
+
+- **"CODE LIKE X" RETRIEVAL MODE — developer profiles as ranking boost (2026-04-18):**
+
+  Developer coding profiles, inferred from git attribution across the project registry:
+  - Which patterns a developer uses most frequently
+  - Which variants they prefer
+  - Which domains they work in (inferred from project membership)
+
+  **"I want to architect like Sanne Grinovero"** — the retrieval service applies a
+  ranking boost based on her profile. Patterns she originated or consistently adopts
+  score higher. Her preferred variants surface first. Her decisions-garden entries
+  get weighted up. This is a **boost, not a filter** — discovery is preserved.
+
+  Developer profiles are subscribable entities. A respected developer can curate or
+  validate their own profile. Others subscribe to use it as a retrieval lens.
+
+  **Monoculture risk:** must be a boost, never an exclusive filter. The system
+  surfaces "coding like X" as a strong prior, not as the only retrieval path.
+
+  **Trust signal:** a pattern originated by Sanne Grinovero, adopted by five other
+  JVM performance experts, spreading to 40 projects = extremely high-signal provenance.
+  Developer reputation cascades into pattern quality scoring.
+
+  **Combined with trend:** "this pattern is growing, and the growth is led by the
+  top five JVM performance engineers" — not just a trend, a credibility signal.
