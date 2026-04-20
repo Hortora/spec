@@ -1,52 +1,48 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-04-18 (session 2)*
+*Last updated: 2026-04-18 (session 3)*
 
 ---
 
 ## What Hortora Is
 
-*Unchanged — `git show HEAD~2:HANDOFF.md`*
+*Unchanged — `git show HEAD~3:HANDOFF.md`*
 
 ## Local Folder Structure
 
-*Unchanged — `git show HEAD~2:HANDOFF.md`*
+*Unchanged — `git show HEAD~3:HANDOFF.md`*
 
 ---
 
 ## The Three Repos — delta only
 
-### `soredium` — major changes this session
+### `soredium` — Area 2 Phase 2 shipped this session
 
-**Area 2 Phase 1 shipped** (epic [#31](https://github.com/Hortora/soredium/issues/31), closes [#32](https://github.com/Hortora/soredium/issues/32)):
+**Closes [#33](https://github.com/Hortora/soredium/issues/33) (epic #31):**
 
-- `GARDEN_TYPES` registry + `GARDEN_DEFAULT` in `validate_pr.py` — 6 garden types with valid entry types, required fields, staleness defaults
-- `validate()` now validates `garden` field, rejects types invalid for the garden, enforces garden-specific required fields (`changed_in` for evolution, `severity` for risk)
-- Backward compatible: absent `garden` defaults to `discovery`
-- `forage/submission-formats.md` — templates for all 6 garden types with editorial bars
-- `forage/SKILL.md` — Step 4 now guides garden + domain selection with editorial bar table
-- `tests/test_garden_types.py` — 25 tests (unit, correctness, happy path, CLI integration)
-- 722 tests passing on main, pushed
+- `validate_patterns_extended(fm)` in `validate_pr.py` — validates 6 optional patterns-garden fields
+- `VALID_AUTHOR_ROLES = {'originator', 'adopter', 'innovator'}`, `VALID_STABILITY = {'low', 'medium', 'high'}`
+- Malformed extended fields → WARNINGs (not CRITICALs); entry still accepted
+- Non-patterns gardens completely unaffected (isolation tested)
+- `forage/submission-formats.md` patterns template updated with all extended fields
+- `forage/SKILL.md` Step 3 extended with patterns-garden optional field extraction table
+- 747 tests passing on main, pushed
 
-Everything before this session in soredium — *unchanged, `git show HEAD~2:HANDOFF.md`*
+Phase 1 details — *unchanged, `git show HEAD~1:HANDOFF.md`*
 
 ### `hortora.github.io`
 
-Blog entries 09 + 10 committed:
-- 09: "Batching the Sweep" (`2026-04-18-forage-sweep-batching.md`)
-- 10: "Code Like Sanne" (`2026-04-18-code-like-sanne.md`)
+Blog entry 11: "Schema, Done Right" (`2026-04-18-schema-done-right.md`) — committed.
+
+Previous entries (09, 10) — *unchanged, `git show HEAD~1:HANDOFF.md`*
 
 ### `Hortora/garden`
 
-Open PRs:
-- #58–60 — from Apr 15 forage sweep (still open)
-- #78 — 2 new entries from today's sweep: `str.replace list[0] gotcha`, `observed_at/indexed_at technique`
+*Unchanged — `git show HEAD~1:HANDOFF.md`* (PRs #58–60 and #78 still open)
 
-### `spec` — significant changes this session
+### `spec`
 
-- Area 2 taxonomy design locked: `docs/superpowers/specs/2026-04-18-area2-taxonomy-design.md`
-- Knowledge dimensions session notes updated with 6-garden revision + patterns-garden extension + developer profiles + trend data design
-- Phase 1 implementation plan: `docs/superpowers/plans/2026-04-18-area2-phase1-core-taxonomy.md`
+Phase 2 plan committed: `docs/superpowers/plans/2026-04-18-area2-phase2-patterns-extended.md`
 
 ---
 
@@ -54,15 +50,13 @@ Open PRs:
 
 **Immediate:** Merge garden PRs #58–60 and #78.
 
-**Next build session: Area 2 Phase 2** — patterns-garden extended entry format:
-- New YAML fields: `observed_in`, `suitability`, `variants`, `variant_frequency`, `authors`, `stability`
-- Validator support for patterns-garden extended fields
-- `submission-formats.md` patterns template update
-- Tests for all new fields
+**Next build session: Area 2 Phase 3** — project registry + ecosystem mining pipeline:
+- Project registry schema + tooling (curated index of monitored projects with `last_processed_commit`)
+- Structural clustering pipeline (extract features, cluster, surface candidate patterns)
+- Delta analysis (monitor major version changes for pattern origin stories)
+- These are new infrastructure, not just validator extensions
 
-**Spec reference:** `docs/superpowers/specs/2026-04-18-area2-taxonomy-design.md` — Patterns-Garden Extended Model section
-
-**Canonical gardens still not created** — `jvm-garden`/`tools-garden` concept is now superseded by knowledge-type-first naming; create `discovery-garden` and `patterns-garden` canonical repos via `init_garden.py`. Blocked on: does the naming change affect `init_garden.py`?
+**Canonical garden naming** — `init_garden.py` may need updating for knowledge-type-first names (`discovery-garden`, `patterns-garden`) vs the old technology-domain names. Check before creating canonical repos.
 
 ---
 
@@ -72,8 +66,8 @@ Open PRs:
 |----------|----------|
 | Area 2 taxonomy spec | `spec/docs/superpowers/specs/2026-04-18-area2-taxonomy-design.md` |
 | Area 2 Phase 1 plan | `spec/docs/superpowers/plans/2026-04-18-area2-phase1-core-taxonomy.md` |
-| Knowledge dimensions (session notes) | `spec/docs/design/2026-04-16-knowledge-dimensions.md` |
+| Area 2 Phase 2 plan | `spec/docs/superpowers/plans/2026-04-18-area2-phase2-patterns-extended.md` |
 | Ecosystem plan (7 areas) | `spec/docs/design/2026-04-16-garden-ecosystem-plan.md` |
-| Blog entry 10 | `hortora.github.io/_posts/2026-04-18-code-like-sanne.md` |
+| Blog entry 11 | `hortora.github.io/_posts/2026-04-18-schema-done-right.md` |
 
-*Previous references (ADR-0004, MCP server, garden health) — `git show HEAD~2:HANDOFF.md`*
+*Previous references — `git show HEAD~1:HANDOFF.md`*
