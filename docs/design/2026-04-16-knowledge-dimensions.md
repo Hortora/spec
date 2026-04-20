@@ -733,3 +733,52 @@ Proactive knowledge push vs reactive retrieval is an open problem in the literat
 
   *Gap:* no published empirical comparison of template configurations for this use case.
   The format is theoretically grounded but not benchmarked against simpler alternatives.
+
+- **TAXONOMY REVISION — 6 gardens, not 5 (2026-04-18):**
+
+  `examples-garden` added as a distinct 6th garden, separated from `patterns-garden`.
+  Rationale: different embedding model (code-specific vs semantic), different editorial
+  bar ("any working minimal example" vs "proven architectural pattern"), different
+  capture pipeline (code miner vs session/ADR mining), and volume imbalance at scale
+  (code miner output would dominate patterns garden, degrading architectural pattern
+  retrieval). Surfacing the distinction explicitly is better than hiding it inside
+  sub-types.
+
+  | Garden | Knowledge type |
+  |--------|---------------|
+  | `discovery-garden` | Gotchas, techniques, undocumented behaviours |
+  | `patterns-garden` | Architectural, migration, integration patterns (prose) |
+  | `examples-garden` | Minimal working code, intent-driven, copy-paste ready |
+  | `evolution-garden` | Version-specific facts, breaking changes, deprecations |
+  | `risk-garden` | Failure modes, post-mortems, production anti-patterns |
+  | `decisions-garden` | ADRs, rejected approaches, settled choices |
+
+- **IMPORTANT DESIGN DETAIL — `decisions-garden` operates at every level of the
+  spanning-tree hierarchy (2026-04-18):**
+
+  The apparent weakness of `decisions-garden` (most ADRs are project-specific, not
+  universal) is resolved by the federation hierarchy itself. A `decisions-garden` is
+  valid and valuable at every node:
+
+  ```
+  canonical decisions-garden          ← universal architectural reasoning
+      └── quarkus-decisions-garden    ← Quarkus community choices + rationale
+          └── acme-decisions-garden   ← ACME Corp's specific ADRs
+  ```
+
+  A developer querying their private garden walks the chain automatically — org ADRs,
+  then community decisions, then universal reasoning. Each level is appropriately scoped.
+
+  **Auto-capture path per level:**
+  - Canonical: mine ADRs broadly from open-source projects across many domains
+  - Community: mine that project's own repo (e.g., Quarkus ADRs from quarkus.io/quarkus)
+  - Private: mine the org's own ADR directory (fully automated, zero friction)
+
+  **Why this matters:** `decisions-garden` is the garden type that most clearly
+  demonstrates the spanning-tree federation model's value. Every other garden type
+  (discovery, patterns, examples) is primarily universal. Decisions are the knowledge
+  type where the hierarchy adds the most precision — the closer to the leaf, the more
+  specific and directly applicable the decision. Do not flatten this to "decisions
+  belong only in private gardens" — the community level is where project-level ADRs
+  (e.g., why Quarkus chose Vert.x, why Kubernetes chose etcd) live and provide value
+  to that project's whole user community.
