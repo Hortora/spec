@@ -1,62 +1,65 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-04-18 (session 3)*
+*Last updated: 2026-04-21 (session 4)*
 
 ---
 
-## What Hortora Is
+## What Hortora Is / Local Folder Structure
 
-*Unchanged — `git show HEAD~3:HANDOFF.md`*
-
-## Local Folder Structure
-
-*Unchanged — `git show HEAD~3:HANDOFF.md`*
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ---
 
 ## The Three Repos — delta only
 
-### `soredium` — Area 2 Phase 2 shipped this session
+### `soredium` — Area 2 Phases 3 and 4 shipped
 
-**Closes [#33](https://github.com/Hortora/soredium/issues/33) (epic #31):**
+**Closes [#34](https://github.com/Hortora/soredium/issues/34) and [#35](https://github.com/Hortora/soredium/issues/35) (epic #31):**
 
-- `validate_patterns_extended(fm)` in `validate_pr.py` — validates 6 optional patterns-garden fields
-- `VALID_AUTHOR_ROLES = {'originator', 'adopter', 'innovator'}`, `VALID_STABILITY = {'low', 'medium', 'high'}`
-- Malformed extended fields → WARNINGs (not CRITICALs); entry still accepted
-- Non-patterns gardens completely unaffected (isolation tested)
-- `forage/submission-formats.md` patterns template updated with all extended fields
-- `forage/SKILL.md` Step 3 extended with patterns-garden optional field extraction table
-- 747 tests passing on main, pushed
+Phase 3 — ecosystem mining foundation:
+- `project_registry.py` — CRUD over `registry/projects.yaml`
+- `feature_extractor.py` — regex-based structural fingerprinting (6 features)
+- `cluster_pipeline.py` — cosine similarity clustering, known-pattern tagging
+- `delta_analysis.py` — new abstractions between git tags with author attribution
 
-Phase 1 details — *unchanged, `git show HEAD~1:HANDOFF.md`*
+Phase 4 — pattern discovery loop closed:
+- `rejection_registry.py` — cosine-similarity suppression of known noise
+- `candidate_report.py` — JSON serialization of pipeline output
+- `pattern_entry.py` — GP-ID skeleton generator for accepted patterns
+- `validate_candidates.py` — human gate (`decide_fn` callback, testable)
+- `run_pipeline.py` — full orchestrator: registry → extract → cluster → delta → report
 
-### `hortora.github.io`
-
-Blog entry 11: "Schema, Done Right" (`2026-04-18-schema-done-right.md`) — committed.
-
-Previous entries (09, 10) — *unchanged, `git show HEAD~1:HANDOFF.md`*
+**826 tests passing on main, pushed.**
 
 ### `Hortora/garden`
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`* (PRs #58–60 and #78 still open)
+- PR #78 merged (52 entries + 10 restored that bad PR #56 had dropped)
+- PR #81: GE-20260420-de730c (stale rebase state gotcha) — open
+- PR #84: rescue/11 local-only entries — open
+- PR #86: 5-entry session sweep — open
+- Git hooks added: `pre-commit` blocks commits when untracked GE-*.md exist; `post-checkout` warns. Hooks in `.githooks/`, `garden-setup.sh` now configures `core.hooksPath`.
+
+### `hortora.github.io`
+
+Blog entry 12: "Cleaning Up, Closing the Loop" (`2026-04-21-mdp01-cleaning-up-closing-the-loop.md`) — committed and pushed.
+
+Previous entries (09–11) — *unchanged, `git show HEAD~1:HANDOFF.md`*
 
 ### `spec`
 
-Phase 2 plan committed: `docs/superpowers/plans/2026-04-18-area2-phase2-patterns-extended.md`
+Phase 3 + 4 plans committed:
+- `docs/superpowers/plans/2026-04-21-area2-phase3-project-registry-and-mining.md`
+- `docs/superpowers/plans/2026-04-21-area2-phase4-validation-gate-and-pipeline.md`
 
 ---
 
 ## What To Do Next
 
-**Immediate:** Merge garden PRs #58–60 and #78.
+**Immediate:** Merge open garden PRs #81, #84, #86.
 
-**Next build session: Area 2 Phase 3** — project registry + ecosystem mining pipeline:
-- Project registry schema + tooling (curated index of monitored projects with `last_processed_commit`)
-- Structural clustering pipeline (extract features, cluster, surface candidate patterns)
-- Delta analysis (monitor major version changes for pattern origin stories)
-- These are new infrastructure, not just validator extensions
+**Next build session: Area 2 Phase 5** — seed `registry/projects.yaml` with 3–5 monitored open-source JVM projects, run `run_pipeline.py` against actual cloned repos, review the first real candidates through `validate_candidates.py`.
 
-**Canonical garden naming** — `init_garden.py` may need updating for knowledge-type-first names (`discovery-garden`, `patterns-garden`) vs the old technology-domain names. Check before creating canonical repos.
+**Canonical garden naming** — `init_garden.py` may need updating for knowledge-type-first names (`discovery-garden`, `patterns-garden`) vs old technology-domain names. Check before creating canonical repos.
 
 ---
 
@@ -65,9 +68,9 @@ Phase 2 plan committed: `docs/superpowers/plans/2026-04-18-area2-phase2-patterns
 | Resource | Location |
 |----------|----------|
 | Area 2 taxonomy spec | `spec/docs/superpowers/specs/2026-04-18-area2-taxonomy-design.md` |
-| Area 2 Phase 1 plan | `spec/docs/superpowers/plans/2026-04-18-area2-phase1-core-taxonomy.md` |
-| Area 2 Phase 2 plan | `spec/docs/superpowers/plans/2026-04-18-area2-phase2-patterns-extended.md` |
+| Phase 3 plan | `spec/docs/superpowers/plans/2026-04-21-area2-phase3-project-registry-and-mining.md` |
+| Phase 4 plan | `spec/docs/superpowers/plans/2026-04-21-area2-phase4-validation-gate-and-pipeline.md` |
+| Blog entry 12 | `hortora.github.io/_posts/2026-04-21-mdp01-cleaning-up-closing-the-loop.md` |
 | Ecosystem plan (7 areas) | `spec/docs/design/2026-04-16-garden-ecosystem-plan.md` |
-| Blog entry 11 | `hortora.github.io/_posts/2026-04-18-schema-done-right.md` |
 
 *Previous references — `git show HEAD~1:HANDOFF.md`*
