@@ -36,8 +36,10 @@ The site publishes automatically to `hortora.github.io` — GitHub Pages builds 
 |---|---|
 | `Hortora/spec` (this repo) | Protocol specification, ADRs, design docs |
 | `Hortora/hortora.github.io` | Public website + blog (Jekyll) |
-| `Hortora/soredium` | Claude skills (forage, harvest), CI scripts |
+| `Hortora/soredium` | Claude skills (forage, harvest), CI scripts, `garden-agent-install.sh` |
 | `Hortora/garden` | Live canonical knowledge garden |
+
+**New machine garden setup:** after cloning the garden, run `~/claude/hortora/soredium/scripts/garden-agent-install.sh` from inside `~/.hortora/garden` to install the autonomous dedup agent (post-commit hook, CLAUDE.md, settings). One-time per machine.
 
 ## Architecture Decision Records
 
