@@ -46,23 +46,128 @@ passes them.
 
 ## LLM Stack
 
-Two separate concerns, two tools:
+Three separate concerns, three tools:
 
 | Concern | Tool | Why |
 |---|---|---|
 | Semantic similarity (dedup, cluster candidates) | **Qdrant + FastEmbed** (same as retrieval service) | Server-side, free, already deployed, no Java embedding code needed |
-| Reasoning (pattern naming, classification, merge synthesis) | **Claude via Langchain4j Anthropic extension** | Best structured output, already the primary model in the ecosystem |
+| Reasoning tasks at scale (pattern naming, classification, merge) | **Ollama (local)** — default | Free, unlimited, no API cost, Langchain4j first-class support |
+| Quality evaluation / gold standard | **Claude Sonnet via Anthropic extension** | Used only for QE test runs, not production mining |
 
-The Java service never computes embeddings. It passes text to Qdrant and Qdrant
-does all vector work — identical to the retrieval service. Claude handles all
-tasks that require judgment.
+### Pluggable Reasoning Model
+
+The reasoning model is config-driven. All AI service interfaces are provider-agnostic —
+only the backing client changes.
 
 ```properties
-# Shared with retrieval service — same Qdrant instance
+# application.properties — default (free, unlimited)
+garden.engine.reasoning.provider=ollama
+quarkus.langchain4j.ollama.base-url=http://localhost:11434
+quarkus.langchain4j.ollama.chat-model.model-id=llama3.3:70b
+quarkus.langchain4j.ollama.chat-model.temperature=0.2
+quarkus.langchain4j.ollama.chat-model.format=json
+
+# application-sonnet.properties — activated with -Dquarkus.profile=sonnet
+garden.engine.reasoning.provider=anthropic
 quarkus.langchain4j.anthropic.api-key=${ANTHROPIC_API_KEY}
 quarkus.langchain4j.anthropic.model-name=claude-sonnet-4-6
 quarkus.langchain4j.anthropic.max-tokens=4096
 ```
+
+Switch model: `./garden-engine mine --all` (uses Ollama) vs
+`./garden-engine mine --all --profile=sonnet` (uses Claude).
+
+### Recommended Free Models (Ollama)
+
+| Model | Size | Strength | Use for |
+|---|---|---|---|
+| `llama3.3:70b` | 40 GB | Best open reasoning + structured JSON | Pattern naming, merge synthesis |
+| `qwen2.5:72b` | 41 GB | Strong structured output, code-aware | Dedup classification |
+| `gemma3:27b` | 17 GB | Lighter, still capable | Fast dedup pass on large gardens |
+| `llama3.2:3b` | 2 GB | Ultra-fast, weaker reasoning | Rough pre-filter before full pass |
+
+Default: `llama3.3:70b`. Lower-RAM option: `gemma3:27b`.
+
+The Java service never computes embeddings. It passes text to Qdrant and Qdrant
+does all vector work — identical to the retrieval service.
+
+---
+
+## Quality Evaluation (QE) Framework
+
+Running mining at scale with a free model creates a risk of degraded output
+quality vs Claude Sonnet. The QE framework measures this gap systematically.
+
+### How it works
+
+```
+garden-engine qe --sample=50 --tasks=all --compare=sonnet
+```
+
+1. **Sample** — randomly selects N entries/clusters from the garden or last mining run
+2. **Run both** — each task (pattern naming, dedup classification, merge) runs through:
+   - Free model (Ollama default)
+   - Claude Sonnet (evaluator and gold standard)
+3. **Score** — Sonnet acts as judge: given both outputs, which is more accurate/useful?
+4. **Report** — per-task agreement rate, cases where models diverge, cost estimate
+
+### QE AI Services
+
+```java
+@RegisterAiService(modelName = "anthropic")  // always Sonnet, never Ollama
+public interface QualityEvaluator {
+
+    @SystemMessage("""
+        You are evaluating two AI outputs for the same knowledge garden task.
+        Score each output 1-5 for: accuracy, completeness, and usefulness.
+        Identify which output is better and explain why, or mark as equivalent.
+        Respond as JSON: {
+          free_score: {accuracy, completeness, usefulness},
+          sonnet_score: {accuracy, completeness, usefulness},
+          winner: "free"|"sonnet"|"equivalent",
+          reasoning: "..."
+        }
+        """)
+    QualityScore evaluate(@UserMessage String taskAndBothOutputs);
+}
+```
+
+### QE Report Format
+
+```
+Garden Engine QE Report — 2026-04-22
+Tasks evaluated: pattern_naming (20), dedup_classification (20), entry_merge (10)
+Free model: llama3.3:70b via Ollama
+
+Pattern naming:
+  Agreement with Sonnet: 17/20 (85%)
+  Free model superior: 0
+  Equivalent: 14
+  Sonnet superior: 3  ← review these manually
+
+Dedup classification:
+  Agreement: 19/20 (95%)
+  Sonnet superior: 1  ← false DISTINCT on semantically identical entries
+
+Entry merge:
+  Agreement: 7/10 (70%)
+  Sonnet superior: 3  ← merge synthesis less complete with Ollama
+
+Overall: 85% agreement. Recommended: promote Ollama to production for
+dedup_classification and pattern_naming. Continue using Sonnet for entry_merge
+until agreement reaches 85%.
+```
+
+### Promotion threshold
+
+- ≥ 90% agreement → Ollama is production-ready for that task
+- 80–90% → manually review divergent cases, re-run QE after prompt tuning
+- < 80% → keep Sonnet for that task, file a prompt improvement issue
+
+### Cost accounting
+
+The QE command also reports the Sonnet cost for the sample run, so you can
+estimate: "running the full garden through Sonnet would cost $X — Ollama saves $Y/month."
 
 ---
 
@@ -327,18 +432,22 @@ indexes at merge time; Garden Engine reads at harvest time and writes merged ent
 1. **Autonomous vs supervised merge**: should EntryMergeService run fully autonomously
    (write merged entry, delete originals) or produce a draft for human confirmation?
    Recommended: fully autonomous for RELATED (See Also links), human confirmation for
-   DUPLICATE merges on first N runs, then promote to autonomous once quality is verified.
+   DUPLICATE merges until QE shows ≥ 85% agreement, then promote to autonomous.
 
 2. **Qdrant collection for fingerprints**: `mining-fingerprints` is separate from
    `garden-entries` because the payload schema differs (project metadata vs entry markdown).
    Confirm collection name and schema before indexing.
 
-3. **Claude model for reasoning tasks**: `claude-sonnet-4-6` is the default.
-   Haiku would be sufficient for dedup classification (cheaper); Sonnet for pattern
-   naming (more creative). Consider model routing per task type.
+3. **Model routing per task**: QE results may show that `gemma3:27b` is sufficient
+   for dedup classification (cheaper, faster) while `llama3.3:70b` is needed for
+   merge synthesis. Add per-task model config once QE data exists.
 
 4. **Python validator retirement**: `validate_pr.py` stays until the Java validation
    layer reaches feature parity. Track in a follow-up issue.
+
+5. **GPU availability**: `llama3.3:70b` needs ~40 GB VRAM or will run slowly on CPU.
+   `gemma3:27b` is the fallback for CPU-only machines. Record which model is running
+   in the QE report so results are comparable.
 
 ---
 
@@ -352,20 +461,28 @@ Phase 1 — Port core pipeline (no LLM)
 - CLI command: `mine --all`
 - Tests: port Python test fixtures to JUnit 5
 
-Phase 2 — Qdrant integration + LLM enrichment
-- Index fingerprints into Qdrant
-- `PatternNamingService` (Claude)
-- `DeltaNarrativeService` (Claude)
-- Replace cosine clustering with Qdrant nearest-neighbour
+Phase 2 — Ollama integration + LLM enrichment (free model first)
+- Wire Langchain4j Ollama extension (`llama3.3:70b` default)
+- `PatternNamingService` backed by Ollama
+- `DeltaNarrativeService` backed by Ollama
+- Index fingerprints into Qdrant, replace cosine clustering with Qdrant nearest-neighbour
+- Add `--profile=sonnet` switch for Anthropic backend
 
-Phase 3 — Semantic harvest
+Phase 3 — QE framework
+- `QualityEvaluator` AI service (always Anthropic/Sonnet)
+- CLI command: `qe --sample=N --tasks=all --compare=sonnet`
+- QE report output
+- Baseline QE run: establish agreement rates for all three task types
+- Tune Ollama prompts until target thresholds met
+
+Phase 4 — Semantic harvest
 - `SemanticDeduplicator` (Qdrant search)
-- `DedupeClassifier` (Claude)
-- `EntryMergeService` (Claude)
+- `DedupeClassifier` (Ollama, validated by QE)
+- `EntryMergeService` (Ollama or Sonnet depending on QE threshold)
 - CLI command: `harvest --sweep`
 - Replace garden-agent CLAUDE.md dedup loop with `garden-engine harvest`
 
-Phase 4 — Native image + replace Python pipeline
+Phase 5 — Native image + replace Python pipeline
 - GraalVM native build
 - Retire Python scripts (keep as reference in `scripts/legacy/`)
 - Update garden-agent-install.sh to invoke `garden-engine` binary
