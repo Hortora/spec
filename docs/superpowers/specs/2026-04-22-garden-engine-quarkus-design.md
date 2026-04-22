@@ -60,10 +60,10 @@ The reasoning model is config-driven. All AI service interfaces are provider-agn
 only the backing client changes.
 
 ```properties
-# application.properties — default (free, unlimited)
+# application.properties — default (free, unlimited, private)
 garden.engine.reasoning.provider=ollama
 quarkus.langchain4j.ollama.base-url=http://localhost:11434
-quarkus.langchain4j.ollama.chat-model.model-id=llama3.3:70b
+quarkus.langchain4j.ollama.chat-model.model-id=qwen3.6:35b-a3b
 quarkus.langchain4j.ollama.chat-model.temperature=0.2
 quarkus.langchain4j.ollama.chat-model.format=json
 
@@ -79,14 +79,20 @@ Switch model: `./garden-engine mine --all` (uses Ollama) vs
 
 ### Recommended Free Models (Ollama)
 
-| Model | Size | Strength | Use for |
-|---|---|---|---|
-| `llama3.3:70b` | 40 GB | Best open reasoning + structured JSON | Pattern naming, merge synthesis |
-| `qwen2.5:72b` | 41 GB | Strong structured output, code-aware | Dedup classification |
-| `gemma3:27b` | 17 GB | Lighter, still capable | Fast dedup pass on large gardens |
-| `llama3.2:3b` | 2 GB | Ultra-fast, weaker reasoning | Rough pre-filter before full pass |
+| Model | Active VRAM | Reasoning | Structured JSON | Notes |
+|---|---|---|---|---|
+| `qwen3.6:35b-a3b` | ~3B active / ~20GB | Excellent (73.4% SWE-bench) | Excellent | **Default** — MoE, fast, best quality |
+| `qwen3:14b` | 9 GB | Very good | Very good | Fallback for <20GB VRAM |
+| `gemma3:27b` | 17 GB | Good | Good | Google open model, alternative |
+| `llama3.3:70b` | 40 GB | Excellent | Very good | Superseded by qwen3.6 at higher VRAM cost |
 
-Default: `llama3.3:70b`. Lower-RAM option: `gemma3:27b`.
+**Default: `qwen3.6:35b-a3b`** — 35B total params but only ~3B active (MoE architecture).
+Stronger reasoning than Llama3.3:70b, runs on consumer hardware, Apache 2.0.
+
+**Why not Qwen3.6-Plus via OpenRouter free tier?**
+The free tier collects prompts for Alibaba training data. Garden entries are your
+curated knowledge — self-hosting keeps them private. Use OpenRouter only for
+non-sensitive QE experiments, never for production mining.
 
 The Java service never computes embeddings. It passes text to Qdrant and Qdrant
 does all vector work — identical to the retrieval service.
@@ -445,9 +451,9 @@ indexes at merge time; Garden Engine reads at harvest time and writes merged ent
 4. **Python validator retirement**: `validate_pr.py` stays until the Java validation
    layer reaches feature parity. Track in a follow-up issue.
 
-5. **GPU availability**: `llama3.3:70b` needs ~40 GB VRAM or will run slowly on CPU.
-   `gemma3:27b` is the fallback for CPU-only machines. Record which model is running
-   in the QE report so results are comparable.
+5. **GPU availability**: `qwen3.6:35b-a3b` needs ~20 GB VRAM (only 3B active params via MoE).
+   `qwen3:14b` is the fallback for <20 GB. Record which model is running in the QE
+   report so results are comparable across machines.
 
 ---
 
