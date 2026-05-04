@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-04-22 (session 6)*
+*Last updated: 2026-05-04 (session 7)*
 
 ---
 
@@ -14,38 +14,54 @@
 
 ### `soredium`
 
-`garden-agent-install.sh` updated: installs `run-scanner.sh` wrapper and
-uses `Bash(bash run-scanner.sh *)` in `settings.json` allowlist instead of
-`python3 */dedupe_scanner.py *`. Removes `--dangerously-skip-permissions`.
+**garden-engine** shipped (Phases 1–4, 171 tests, #39 closed):
+- FeatureExtractor, ClusterPipeline, DeltaAnalysis, ProjectRegistry (Phase 1)
+- Langchain4j 1.9.1 wired: AI services as @RegisterAiService, MockReasoningService
+  intercepts all CDI in tests, JLama as default (Phase 2+3)
+- QE matrix: `qe --matrix`, ModelComparisonResult, QEMatrixReport (Phase 3)
+- SemanticDeduplicator: classify pairs → merge on DUPLICATE (Phase 4)
+- `.mvn/maven.config` workaround for Quarkus 3.33.1 + JLama bootstrap bug
+
+**forage skill** updated:
+- Delivery steps now use concrete resolved garden path (no shell variable expansion)
+- `required-permissions` frontmatter field declared in SKILL.md for install-skills
+
+**langchain4j fork** (`mdproctor/quarkus-langchain4j`):
+- Pushed fixes to `fix/jlama-dev-mode-jvm-options-0.26.x`: ChatMemoryProcessor
+  and JlamaProcessor runtime-config-in-@BuildStep fixes (722c5440, 18388ee8)
+- Fork still targets Quarkus 3.15.2 — cannot use directly in garden-engine (3.33.1)
+  until fork's Quarkus target is upgraded
 
 ### `Hortora/garden`
 
-- `run-scanner.sh` added — wraps dedupe_scanner.py to avoid `${:-}` expansion
-  in agent commands, keeping permission system intact
-- `CLAUDE.md` updated — agent now calls `bash run-scanner.sh` instead of
-  constructing python3 commands with shell expansions
-- `settings.json` updated — allowlist now covers `bash run-scanner.sh *`
-- Garden agent ran autonomously: `dedupe: sweep 50 pairs — 21 related, 29 distinct`
-- 3 forage entries submitted (claude-code domain): dangerously-skip-permissions
-  risk, expansion prompt ordering, wrapper script pattern
+- 37 stranded entries extracted from 20 stale PRs and committed
+- 63 ghost entries recovered from git history
+- validate_garden.py fixed to recognise YAML `id:` frontmatter (was only seeing
+  legacy `**ID:**` body format)
+- Forage now pushes directly to main (no PR workflow)
+- 2 new garden entries: @ConfigProperty null outside CDI, Claude Code expansion
+  check separate from allowlist
 
-### `hortora.github.io` / `spec`
+### `hortora.github.io`
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+- Blog entry 14 added: "The Garden Debt and a Java Engine" (2026-05-04)
 
 ---
 
 ## What To Do Next
 
-**Immediate:** Merge open garden PRs #81, #84, #86.
+**Immediate:** Upgrade langchain4j fork to target Quarkus 3.33.1, then remove
+`.mvn/maven.config` workaround from garden-engine.
 
-**Monitor:** Check `garden-agent.log` after next forage commit to confirm
-agent runs without any prompts.
+**Langchain4j upstream tickets:** Draft ready in session history — create
+issue for JlamaProcessor @BuildStep runtime config (commits 722c5440, 18388ee8)
+and comment on existing #2375 with fix commit refs.
 
-**Next build session: Area 2 Phase 5** — seed `registry/projects.yaml` with
-3–5 JVM projects, run `run_pipeline.py` against real cloned repos.
+**Next build:** Area 2 Phase 5 — `validate_schema.py` + `init_garden.py`
+(issue #29, Hortora/soredium).
 
-**soredium README** — `garden-agent-install.sh` still undocumented there.
+**QE run:** Once Ollama/JLama model available with GPU, run
+`qe --matrix --tasks=dedup,pattern --sample=10` to validate free model adequacy.
 
 ---
 
