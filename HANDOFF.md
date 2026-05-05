@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-04 (session 7)*
+*Last updated: 2026-05-05 (session 8)*
 
 ---
 
@@ -14,37 +14,35 @@
 
 ### `soredium`
 
-**garden-engine** shipped (Phases 1–4, 171 tests, #39 closed):
-- FeatureExtractor, ClusterPipeline, DeltaAnalysis, ProjectRegistry (Phase 1)
-- Langchain4j 1.9.1 wired: AI services as @RegisterAiService, MockReasoningService
-  intercepts all CDI in tests, JLama as default (Phase 2+3)
-- QE matrix: `qe --matrix`, ModelComparisonResult, QEMatrixReport (Phase 3)
-- SemanticDeduplicator: classify pairs → merge on DUPLICATE (Phase 4)
-- `.mvn/maven.config` workaround for Quarkus 3.33.1 + JLama bootstrap bug
+**Phase 5 complete and closed** (#29 closed):
+- `validate_schema.py` + `init_garden.py` + `validate_garden.py` integration shipped
+- Code review found 4 issues; all fixed (commit `9193f1c`):
+  - Critical: drift counter unbolded → `--dedupe-check` regex silently read 0
+  - Important: `description` field not validated despite being in spec
+  - Important: schema warnings routed to `log_info` (invisible without `--verbose`)
+  - Important: dead `create_checked_md`/`create_discarded_md` functions removed
+- MCP protocol tests: 29 failures fixed with `sys.executable` not `'python3'`
+  (commit `80caf06`) — `McpError: Connection closed` was a wrong interpreter
+- **836 tests, 0 failures** (all MCP extended tests now passing)
+- CLAUDE.md updated: Phase 5 status, test deps (`pip install pytest mcp pyyaml ...`)
 
-**forage skill** updated:
-- Delivery steps now use concrete resolved garden path (no shell variable expansion)
-- `required-permissions` frontmatter field declared in SKILL.md for install-skills
+**garden-engine** (Phases 1–4, 171 tests, #39 closed):
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
-**langchain4j fork** (`mdproctor/quarkus-langchain4j`):
-- Pushed fixes to `fix/jlama-dev-mode-jvm-options-0.26.x`: ChatMemoryProcessor
-  and JlamaProcessor runtime-config-in-@BuildStep fixes (722c5440, 18388ee8)
-- Fork still targets Quarkus 3.15.2 — cannot use directly in garden-engine (3.33.1)
-  until fork's Quarkus target is upgraded
+**forage skill** + **langchain4j fork:**
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `Hortora/garden`
 
-- 37 stranded entries extracted from 20 stale PRs and committed
-- 63 ghost entries recovered from git history
-- validate_garden.py fixed to recognise YAML `id:` frontmatter (was only seeing
-  legacy `**ID:**` body format)
-- Forage now pushes directly to main (no PR workflow)
-- 2 new garden entries: @ConfigProperty null outside CDI, Claude Code expansion
-  check separate from allowlist
+2 new entries this session:
+- `tools/GE-20260505-f60bab` — MCP `StdioServerParameters command='python3'` spawns wrong interpreter
+- `tools/GE-20260505-14159c` — `init_garden.py` unbolded drift counter silently breaks `--dedupe-check`
+
+Prior session garden work — *Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `hortora.github.io`
 
-- Blog entry 14 added: "The Garden Debt and a Java Engine" (2026-05-04)
+- Blog entry 15 added: "Phase 5 Done — and Two Bugs That Hid" (2026-05-05)
 
 ---
 
@@ -56,9 +54,6 @@
 **Langchain4j upstream tickets:** Draft ready in session history — create
 issue for JlamaProcessor @BuildStep runtime config (commits 722c5440, 18388ee8)
 and comment on existing #2375 with fix commit refs.
-
-**Next build:** Area 2 Phase 5 — `validate_schema.py` + `init_garden.py`
-(issue #29, Hortora/soredium).
 
 **QE run:** Once Ollama/JLama model available with GPU, run
 `qe --matrix --tasks=dedup,pattern --sample=10` to validate free model adequacy.
