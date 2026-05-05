@@ -87,7 +87,7 @@ domains: [tools, cli, git]
 - Create: `soredium/scripts/validate_schema.py`
 - Create: `soredium/tests/test_validate_schema.py`
 
-- [ ] **Step 1: Write failing unit tests**
+- [x] **Step 1: Write failing unit tests**
 
 Create `soredium/tests/test_validate_schema.py`:
 
@@ -502,7 +502,7 @@ if __name__ == '__main__':
     unittest.main(verbosity=2)
 ```
 
-- [ ] **Step 2: Run tests — verify they FAIL**
+- [x] **Step 2: Run tests — verify they FAIL**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -511,7 +511,7 @@ python3 -m pytest tests/test_validate_schema.py -v 2>&1 | head -10
 
 Expected: `ModuleNotFoundError: No module named 'validate_schema'`
 
-- [ ] **Step 3: Create validate_schema.py**
+- [x] **Step 3: Create validate_schema.py**
 
 Create `soredium/scripts/validate_schema.py`:
 
@@ -692,7 +692,7 @@ if __name__ == '__main__':
     main()
 ```
 
-- [ ] **Step 4: Run all tests — verify they PASS**
+- [x] **Step 4: Run all tests — verify they PASS**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -701,7 +701,7 @@ python3 -m pytest tests/test_validate_schema.py -v
 
 Expected: All tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -720,7 +720,7 @@ Refs #12"
 - Modify: `soredium/tests/test_validate_garden.py`
 - Modify: `soredium/scripts/validate_garden.py`
 
-- [ ] **Step 1: Add schema_md() to GardenFixture**
+- [x] **Step 1: Add schema_md() to GardenFixture**
 
 Read `soredium/tests/garden_fixture.py` first to understand the existing builder pattern. Then add this method to the `GardenFixture` class:
 
@@ -748,7 +748,7 @@ def schema_md(self, role: str = 'canonical', ge_prefix: str = 'GE-',
     return self
 ```
 
-- [ ] **Step 2: Write failing tests**
+- [x] **Step 2: Write failing tests**
 
 Add this class to `soredium/tests/test_validate_garden.py` (after existing imports — `GardenFixture` is already imported there):
 
@@ -803,7 +803,7 @@ class TestSchemaValidation(unittest.TestCase):
         self.assertIn('upstream', result.stdout + result.stderr)
 ```
 
-- [ ] **Step 3: Run — verify they FAIL**
+- [x] **Step 3: Run — verify they FAIL**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -812,7 +812,7 @@ python3 -m pytest tests/test_validate_garden.py::TestSchemaValidation -v
 
 Expected: All 5 FAIL — `validate_garden.py` doesn't call `validate_schema` yet.
 
-- [ ] **Step 4: Implement SCHEMA.md check in validate_garden.py**
+- [x] **Step 4: Implement SCHEMA.md check in validate_garden.py**
 
 Read `soredium/scripts/validate_garden.py` to find where `GARDEN_MD` is defined and where the main validation body begins. Then add this block immediately after the GARDEN.md existence check (keep it near the top of the validation body, before entry-level checks):
 
@@ -842,7 +842,7 @@ Read `soredium/scripts/validate_garden.py` to find where `GARDEN_MD` is defined 
 
 **Note:** Using `importlib` avoids sys.path manipulation and is consistent with the existing validate_garden.py pattern of self-contained execution. Read the file carefully to find `log_error`, `log_info`, and `GARDEN_MD` — use the exact names already in the file.
 
-- [ ] **Step 5: Run all validate_garden tests**
+- [x] **Step 5: Run all validate_garden tests**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -851,7 +851,7 @@ python3 -m pytest tests/test_validate_garden.py -v
 
 Expected: All tests PASS including the 5 new `TestSchemaValidation` tests.
 
-- [ ] **Step 6: Run full suite — no regressions**
+- [x] **Step 6: Run full suite — no regressions**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -860,7 +860,7 @@ python3 -m pytest tests/ --tb=short 2>&1 | tail -5
 
 Expected: 260+ tests, 0 failures.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -878,7 +878,7 @@ Refs #12"
 - Create: `soredium/scripts/init_garden.py`
 - Create: `soredium/tests/test_init_garden.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `soredium/tests/test_init_garden.py`:
 
@@ -1287,7 +1287,7 @@ if __name__ == '__main__':
     unittest.main(verbosity=2)
 ```
 
-- [ ] **Step 2: Run — verify they FAIL**
+- [x] **Step 2: Run — verify they FAIL**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -1296,7 +1296,7 @@ python3 -m pytest tests/test_init_garden.py -v 2>&1 | head -10
 
 Expected: `ModuleNotFoundError: No module named 'init_garden'`
 
-- [ ] **Step 3: Create init_garden.py**
+- [x] **Step 3: Create init_garden.py**
 
 Create `soredium/scripts/init_garden.py`:
 
@@ -1502,7 +1502,7 @@ if __name__ == '__main__':
     main()
 ```
 
-- [ ] **Step 4: Run all init_garden tests — verify they PASS**
+- [x] **Step 4: Run all init_garden tests — verify they PASS**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -1511,7 +1511,7 @@ python3 -m pytest tests/test_init_garden.py -v
 
 Expected: All tests PASS.
 
-- [ ] **Step 5: Run full suite — no regressions**
+- [x] **Step 5: Run full suite — no regressions**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -1520,7 +1520,7 @@ python3 -m pytest tests/ --tb=short 2>&1 | tail -5
 
 Expected: 0 failures.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -1539,11 +1539,11 @@ Refs #12"
 
 Full pipeline: `init_garden` → validate schema → validate garden → add entry on PR branch → `validate_pr`.
 
-- [ ] **Step 1: Read test_integration.py first**
+- [x] **Step 1: Read test_integration.py first**
 
 Read `soredium/tests/test_integration.py` to find: existing imports, existing path constants (`VALIDATE_PR`, `VALIDATOR`, etc.), the `textwrap` import, and `subprocess`/`sys` imports. Add only what is missing.
 
-- [ ] **Step 2: Write failing E2E tests**
+- [x] **Step 2: Write failing E2E tests**
 
 Add to the END of `soredium/tests/test_integration.py`:
 
@@ -1702,7 +1702,7 @@ class TestE2EInitGardenPipeline(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
 ```
 
-- [ ] **Step 3: Run E2E tests**
+- [x] **Step 3: Run E2E tests**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -1711,7 +1711,7 @@ python3 -m pytest tests/test_integration.py::TestE2EInitGardenPipeline -v
 
 Expected: All 6 tests PASS.
 
-- [ ] **Step 4: Run full suite**
+- [x] **Step 4: Run full suite**
 
 ```bash
 cd ~/claude/hortora/soredium
@@ -1720,7 +1720,7 @@ python3 -m pytest tests/ --tb=short 2>&1 | tail -5
 
 Expected: 0 failures.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd ~/claude/hortora/soredium
