@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-05 (session 8)*
+*Last updated: 2026-05-07 (session 9)*
 
 ---
 
@@ -14,49 +14,49 @@
 
 ### `soredium`
 
-**Phase 5 complete and closed** (#29 closed):
-- `validate_schema.py` + `init_garden.py` + `validate_garden.py` integration shipped
-- Code review found 4 issues; all fixed (commit `9193f1c`):
-  - Critical: drift counter unbolded → `--dedupe-check` regex silently read 0
-  - Important: `description` field not validated despite being in spec
-  - Important: schema warnings routed to `log_info` (invisible without `--verbose`)
-  - Important: dead `create_checked_md`/`create_discarded_md` functions removed
-- MCP protocol tests: 29 failures fixed with `sys.executable` not `'python3'`
-  (commit `80caf06`) — `McpError: Connection closed` was a wrong interpreter
-- **836 tests, 0 failures** (all MCP extended tests now passing)
-- CLAUDE.md updated: Phase 5 status, test deps (`pip install pytest mcp pyyaml ...`)
-
-**garden-engine** (Phases 1–4, 171 tests, #39 closed):
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
-
-**forage skill** + **langchain4j fork:**
 *Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `Hortora/garden`
 
-2 new entries this session:
-- `tools/GE-20260505-f60bab` — MCP `StdioServerParameters command='python3'` spawns wrong interpreter
-- `tools/GE-20260505-14159c` — `init_garden.py` unbolded drift counter silently breaks `--dedupe-check`
-
-Prior session garden work — *Unchanged — `git show HEAD~1:HANDOFF.md`*
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `hortora.github.io`
 
-- Blog entry 15 added: "Phase 5 Done — and Two Bugs That Hid" (2026-05-05)
+- Blog entry 16 added: "Hortora as a Knowledge Methodology" (2026-05-07)
 
 ---
 
-## What To Do Next
+## New This Session — Methodology Design
 
-**Immediate:** Upgrade langchain4j fork to target Quarkus 3.33.1, then remove
-`.mvn/maven.config` workaround from garden-engine.
+**Design doc committed:** `docs/design/2026-05-05-hortora-project-knowledge-methodology.md`
 
-**Langchain4j upstream tickets:** Draft ready in session history — create
-issue for JlamaProcessor @BuildStep runtime config (commits 722c5440, 18388ee8)
-and comment on existing #2375 with fix commit refs.
+Hortora as a full project knowledge methodology — not just discovery gardens.
+Three layers: discovery gardens, platform protocols, ADRs. All RAG-optimal, all
+hierarchical. Key decisions recorded in the doc:
 
-**QE run:** Once Ollama/JLama model available with GPU, run
-`qe --matrix --tasks=dedup,pattern --sample=10` to validate free model adequacy.
+- Protocol entry format: YAML frontmatter (id, title, type, severity, refs, violation_hint)
+- `protocol` skill: CAPTURE, SWEEP, SEARCH, HEALTH, DEEP-SCAN
+- DEEP-SCAN: gap finding + relevance check + violation detection
+- PROTOCOL-REFS.yaml for cross-repo link integrity
+- Casehub garden concept: `~/.hortora/casehub/` as project-scoped child garden
+- PLATFORM.md / APPLICATIONS.md split (done — committed to casehub/parent `6cc21f0`)
+
+**Four audits required before spec can be written:**
+1. ~70 canonical quarkus/ garden entries referencing casehub concepts → classify
+2. 33 casehub conventions → universal gotchas vs casehub protocols (known contradiction: quarkus-junit)
+3. Folder structure validation against real entries
+4. repos/ depth check (9 files — trim class-level detail)
+
+**Immediate priorities (no audit needed):**
+1. Migrate 33 conventions to YAML frontmatter format, rename `conventions/` → `protocols/`
+2. Create `protocol` skill in soredium
+3. Hook protocol SWEEP into handover wrap alongside forage
+
+---
+
+## What To Do Next (carry-forward)
+
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ---
 
