@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-07 (session 9)*
+*Last updated: 2026-05-12 (session 10)*
 
 ---
 
@@ -14,52 +14,63 @@
 
 ### `soredium`
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+- `protocol/SKILL.md` added — CAPTURE, SWEEP, SEARCH, HEALTH, DEEP-SCAN (stub). Generic tool; no casehub content.
+- `README.md` updated with protocol skill entry
 
 ### `Hortora/garden`
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+- GE-20260415-3ce5f3 deleted — quarkus-junit direction was inverted; GARDEN.md index cleaned
+- 3 new entries (2026-05-12): `tools/GE-20260512-0dc5df` (sed silently empties file on macOS), `jvm/GE-20260512-47f92e` (quarkus-junit5 relocation stub since 3.31), `tools/GE-20260512-deda31` (Python replace over sed for safe multi-file edits)
 
 ### `hortora.github.io`
 
-- Blog entry 16 added: "Hortora as a Knowledge Methodology" (2026-05-07)
+- Blog entry 17 added: "Protocol Layer and Coherence" (2026-05-12)
 
 ---
 
-## New This Session — Methodology Design
+## New This Session — Protocol Layer + Methodology Refinement
 
-**Design doc committed:** `docs/design/2026-05-05-hortora-project-knowledge-methodology.md`
+**Epic #40 closed.** Three priorities shipped:
 
-Hortora as a full project knowledge methodology — not just discovery gardens.
-Three layers: discovery gardens, platform protocols, ADRs. All RAG-optimal, all
-hierarchical. Key decisions recorded in the doc:
+1. **33 casehub conventions → `protocols/`** — YAML frontmatter added (PP-YYYYMMDD-xxxxxx IDs, full schema), directory renamed, CLAUDE.md and PLATFORM.md updated. `casehub/parent` commit `080f53f`.
+2. **`protocol` skill** — soredium commit `f26ee0d` → `d284b38` (stripped casehub-specific posture after it moved to java-dev)
+3. **Handover wrap** — protocol SWEEP now default-on alongside forage. cc-praxis commit `6effd7a`.
 
-- Protocol entry format: YAML frontmatter (id, title, type, severity, refs, violation_hint)
-- `protocol` skill: CAPTURE, SWEEP, SEARCH, HEALTH, DEEP-SCAN
-- DEEP-SCAN: gap finding + relevance check + violation detection
-- PROTOCOL-REFS.yaml for cross-repo link integrity
-- Casehub garden concept: `~/.hortora/casehub/` as project-scoped child garden
-- PLATFORM.md / APPLICATIONS.md split (done — committed to casehub/parent `6cc21f0`)
+**Definition of protocols settled:**
+Protocols are about platform coherence and consistency — standing architectural rules that answer "how do we do this consistently?" not "how do I avoid this gotcha?" ~9 of the 33 are genuine protocols; ~24 are Quarkus/Java gotchas that belong in the garden. Audit 2 is half-done but entries not yet moved.
 
-**Four audits required before spec can be written:**
-1. ~70 canonical quarkus/ garden entries referencing casehub concepts → classify
-2. 33 casehub conventions → universal gotchas vs casehub protocols (known contradiction: quarkus-junit)
-3. Folder structure validation against real entries
-4. repos/ depth check (9 files — trim class-level detail)
+**java-dev updated (cc-praxis):**
+- "Minimize changes" → "Keep commits focused" (commit discipline, not code avoidance)
+- Multi-level consolidation added (class → module → repo)
+- "Clean APIs and abstractions" section added
 
-**Immediate priorities (no audit needed):**
-1. Migrate 33 conventions to YAML frontmatter format, rename `conventions/` → `protocols/`
-2. Create `protocol` skill in soredium
-3. Hook protocol SWEEP into handover wrap alongside forage
+**config-architecture.md split:**
+- `cc-praxis/docs/config-architecture.md` → generic, no casehub content
+- `casehub/parent/docs/config-architecture.md` → casehub-specific (Platform coherence, protocols dir, Known Duplications)
+- `update-claude-md` Step 0 now reads `**Config architecture:**` URL from CLAUDE.md, falls back to cc-praxis generic
+
+**Child repo CLAUDE.mds fixed:**
+All 7 child repos (connectors, claudony, devtown, aml, qhorus, work, clinical): absolute `/Users/mdproctor/...` paths → `~/claude/casehub/parent/docs/` with skip-if-absent note.
 
 ---
 
-## What To Do Next (carry-forward)
+## What To Do Next
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+**Immediate: complete Audit 2** — go through the remaining ~24 generic Quarkus/Java protocols and move them to the canonical garden as discovery entries. Start with the clearest ones (cdi-*, quarkus-test-*, panache-*).
+
+**Then Audit 1** — ~70 canonical `quarkus/` garden entries referencing casehub concepts → classify as universal or casehub-specific.
+
+**Still pending (unchanged):** Audits 3 and 4 (folder structure validation, repos/ depth check). Langchain4j fork upgrade. QE run with GPU.
 
 ---
 
 ## Key ADRs / Reference Links
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+| Resource | Location |
+|----------|----------|
+| Methodology design doc | `spec/docs/design/2026-05-05-hortora-project-knowledge-methodology.md` |
+| Protocol skill | `soredium/protocol/SKILL.md` |
+| casehub config-architecture | `casehub/parent/docs/config-architecture.md` |
+| Blog entry 17 | `hortora.github.io/_posts/2026-05-12-mdp01-protocol-layer-coherence.md` |
+
+*Previous ADRs/refs — `git show HEAD~1:HANDOFF.md`*
