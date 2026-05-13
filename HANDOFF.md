@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-12 (session 10)*
+*Last updated: 2026-05-13 (session 11)*
 
 ---
 
@@ -14,63 +14,64 @@
 
 ### `soredium`
 
-- `protocol/SKILL.md` added — CAPTURE, SWEEP, SEARCH, HEALTH, DEEP-SCAN (stub). Generic tool; no casehub content.
-- `README.md` updated with protocol skill entry
+- Issue #44 opened: add `type: convention` + `variant:` field to garden schema (`validate_pr.py`, `submission-formats.md`, forage skill). Convention entries blocked on this.
 
 ### `Hortora/garden`
 
-- GE-20260415-3ce5f3 deleted — quarkus-junit direction was inverted; GARDEN.md index cleaned
-- 3 new entries (2026-05-12): `tools/GE-20260512-0dc5df` (sed silently empties file on macOS), `jvm/GE-20260512-47f92e` (quarkus-junit5 relocation stub since 3.31), `tools/GE-20260512-deda31` (Python replace over sed for safe multi-file edits)
+**Audit 2 — 22 entries added to `jvm/` + `tools/`:**
+All universal Quarkus/Java gotchas and techniques migrated from casehub protocols. Commit `4ced46b`.
+
+**Audit 1 — 33 entries reclassified:**
+Moved from `quarkus/` and `jvm/` to casehub domain directories. Commit `5996b15`.
+- `casehub-engine/` — 15 entries (CaseContextImpl, engine SPI, persistence-memory)
+- `casehub-work/` — 10 entries (WorkItem lifecycle, WorkerCandidate, quarkus-work API)
+- `casehub-ledger/` — 4 entries (LedgerAttestation, sequence_number)
+- `casehub-qhorus/` — 4 entries (new domain; EVENT content, check_messages, reactive activation)
+
+8 duplicates discarded (superseded by new jvm/ entries). GARDEN.md updated with all new sections.
+
+2 new tools entries: `GE-20260513-176ca1` (git mv missing target dir gotcha), `GE-20260513-01e602` (git show recovery technique).
+
+### `casehub/parent`
+
+- `docs/protocols/INDEX.md` rebuilt: 15 casehub-specific protocols, Garden References section (22 GE-IDs), Casehub Domain Entries section (33 GE-IDs grouped by domain).
 
 ### `hortora.github.io`
 
-- Blog entry 17 added: "Protocol Layer and Coherence" (2026-05-12)
+- Blog entry 18 added: "Three Kinds of Knowledge" (2026-05-13) — garden taxonomy design, audit results.
 
 ---
 
-## New This Session — Protocol Layer + Methodology Refinement
+## Garden Schema Decision — `type: convention`
 
-**Epic #40 closed.** Three priorities shipped:
+**Settled this session.** Three-way taxonomy:
+- **Universal** — always true, no alternatives (`gotcha`, `technique`, `undocumented`)
+- **Convention** — style choice, alternatives exist → new `type: convention`
+- **Casehub-specific** — stays in protocols or casehub-* garden domains
 
-1. **33 casehub conventions → `protocols/`** — YAML frontmatter added (PP-YYYYMMDD-xxxxxx IDs, full schema), directory renamed, CLAUDE.md and PLATFORM.md updated. `casehub/parent` commit `080f53f`.
-2. **`protocol` skill** — soredium commit `f26ee0d` → `d284b38` (stripped casehub-specific posture after it moved to java-dev)
-3. **Handover wrap** — protocol SWEEP now default-on alongside forage. cc-praxis commit `6effd7a`.
+**`variant:` field** — when two entries share a `title:`, each adds `variant:` with alternative-specific descriptor. GARDEN.md groups them under the shared title. Single entries omit `variant:`.
 
-**Definition of protocols settled:**
-Protocols are about platform coherence and consistency — standing architectural rules that answer "how do we do this consistently?" not "how do I avoid this gotcha?" ~9 of the 33 are genuine protocols; ~24 are Quarkus/Java gotchas that belong in the garden. Audit 2 is half-done but entries not yet moved.
-
-**java-dev updated (cc-praxis):**
-- "Minimize changes" → "Keep commits focused" (commit discipline, not code avoidance)
-- Multi-level consolidation added (class → module → repo)
-- "Clean APIs and abstractions" section added
-
-**config-architecture.md split:**
-- `cc-praxis/docs/config-architecture.md` → generic, no casehub content
-- `casehub/parent/docs/config-architecture.md` → casehub-specific (Platform coherence, protocols dir, Known Duplications)
-- `update-claude-md` Step 0 now reads `**Config architecture:**` URL from CLAUDE.md, falls back to cc-praxis generic
-
-**Child repo CLAUDE.mds fixed:**
-All 7 child repos (connectors, claudony, devtown, aml, qhorus, work, clinical): absolute `/Users/mdproctor/...` paths → `~/claude/casehub/parent/docs/` with skip-if-absent note.
+**6 convention entries pending schema change:** module-tier-structure, maven-submodule-naming, maven-module-scoping, quartz-ram-store, optional-module-pattern, spi-blocking-reactive-parity.
 
 ---
 
 ## What To Do Next
 
-**Immediate: complete Audit 2** — go through the remaining ~24 generic Quarkus/Java protocols and move them to the canonical garden as discovery entries. Start with the clearest ones (cdi-*, quarkus-test-*, panache-*).
+**Immediate: implement soredium#44** — `type: convention` + `variant:` in `validate_pr.py` and `submission-formats.md`. Then write the 6 pending convention entries.
 
-**Then Audit 1** — ~70 canonical `quarkus/` garden entries referencing casehub concepts → classify as universal or casehub-specific.
+**Then: Audit 3** — folder structure validity (does every entry have a natural home?).
+**Then: Audit 4** — `repos/` depth check (trim class-level detail, add references).
 
-**Still pending (unchanged):** Audits 3 and 4 (folder structure validation, repos/ depth check). Langchain4j fork upgrade. QE run with GPU.
+**Still pending (unchanged):** Langchain4j fork upgrade. QE run with GPU.
 
 ---
 
 ## Key ADRs / Reference Links
 
 | Resource | Location |
-|----------|----------|
+|---|---|
 | Methodology design doc | `spec/docs/design/2026-05-05-hortora-project-knowledge-methodology.md` |
-| Protocol skill | `soredium/protocol/SKILL.md` |
-| casehub config-architecture | `casehub/parent/docs/config-architecture.md` |
-| Blog entry 17 | `hortora.github.io/_posts/2026-05-12-mdp01-protocol-layer-coherence.md` |
+| Convention schema issue | Hortora/soredium#44 |
+| Blog entry 18 | `hortora.github.io/_posts/2026-05-13-mdp01-garden-audit-taxonomy.md` |
 
 *Previous ADRs/refs — `git show HEAD~1:HANDOFF.md`*
