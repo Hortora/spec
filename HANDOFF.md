@@ -35,6 +35,9 @@ Moved from `quarkus/` and `jvm/` to casehub domain directories. Commit `5996b15`
 ### `casehub/parent`
 
 - `docs/protocols/INDEX.md` rebuilt: 15 casehub-specific protocols, Garden References section (22 GE-IDs), Casehub Domain Entries section (33 GE-IDs grouped by domain).
+- `docs/PLATFORM.md` cleaned: stale `sql-type-portability.md` link → garden ref; persistence split paragraph → one-liner; ledger subclass bullet → pointer. Commit `77e498c`.
+- `docs/protocols/module-tier-structure.md` — Persistence Module Split Rule expanded with full rule text and canonical example.
+- `docs/protocols/ledger-subclass-extension.md` — new protocol: JOINED inheritance, V1004+ consumer migrations, domain-agnostic leaf hash, checklist.
 
 ### `hortora.github.io`
 
