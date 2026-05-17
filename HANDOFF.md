@@ -49,7 +49,7 @@ Blog entry 19 published: "Conventions, Audits, and an Embarrassing Gap" (2026-05
 
 **Immediate:** Fix the 512-entry index gap — wire `integrate_entry.py` into forage CAPTURE Step 8 (Deliver). Read `scripts/integrate_entry.py` first to understand what it updates (GARDEN.md, `_index/global.md`, `labels/`, domain `INDEX.md`). Test against a scratch garden before touching the live one. Open a Hortora/soredium issue before starting.
 
-**Then: Audit 4** — `repos/` depth check: trim class-level detail from casehub domain entries, add garden references.
+**Then: Audit 4** — `repos/` depth check in `casehub/parent/docs/repos/`. 9 files (6 foundation repos + devtown, aml, clinical). Rule: each file stays at family-awareness level — module ownership, what it does NOT do, dependency graph. No class names, no method signatures. For each file: identify anything that has crept into class-level design detail, trim it, add a reference to the module's own DESIGN.md in its place. Start by listing all 9 files and skimming for the depth boundary.
 
 **Still pending:** Langchain4j fork upgrade. QE run with GPU. `quarkus/` → `jvm/` merge (208 files, separate session).
 
