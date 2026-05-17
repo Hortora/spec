@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-13 (session 11)*
+*Last updated: 2026-05-17 (session 12)*
 
 ---
 
@@ -14,58 +14,44 @@
 
 ### `soredium`
 
-- Issue #44 opened: add `type: convention` + `variant:` field to garden schema (`validate_pr.py`, `submission-formats.md`, forage skill). Convention entries blocked on this.
+**soredium#44 complete.** `type: convention` + `variant:` field shipped:
+- `validate_pr.py` — `find_same_title_siblings`, 4-branch variant check (CRITICAL/WARNING/suppression/non-convention), Jaccard suppression for confirmed sibling pairs
+- `validate_garden.py` — check 8: same-title group must all have `variant:` or ERROR
+- `forage/SKILL.md` — 11 enumeration sites updated, SWEEP Step 4 (convention scan), Proactive Trigger, editorial bar, scoring note, `quarkus/` marked as legacy domain
+- `forage/submission-formats.md` — `variant:` in Optional Fields table, Convention Template
+
+Protocol skill: `VALID_SCOPES` bug fixed (was missing `universal`, `application`). Synced.
+
+**Open issues:** #45 (GARDEN.md two-level rendering), #46 (work-start garden search), #47 (harvest trigger research), #48 (protocol: field), #49-53 (minor nits).
 
 ### `Hortora/garden`
 
-**Audit 2 — 22 entries added to `jvm/` + `tools/`:**
-All universal Quarkus/Java gotchas and techniques migrated from casehub protocols. Commit `4ced46b`.
+**Audit 3 complete:**
+- `approaches/` domain retired — 3 entries moved to `jvm/`, `domain:` frontmatter corrected
+- `quarkus/` documented as frozen legacy — new Quarkus entries route to `jvm/` only
+- Garden pre-commit hook gotcha captured: GE-20260517-3dddfa (`tools/`)
+- 5 convention/technique entries committed: GE-20260515-6e8205, da8abd, 70021c, c272d2, ffde26
 
-**Audit 1 — 33 entries reclassified:**
-Moved from `quarkus/` and `jvm/` to casehub domain directories. Commit `5996b15`.
-- `casehub-engine/` — 15 entries (CaseContextImpl, engine SPI, persistence-memory)
-- `casehub-work/` — 10 entries (WorkItem lifecycle, WorkerCandidate, quarkus-work API)
-- `casehub-ledger/` — 4 entries (LedgerAttestation, sequence_number)
-- `casehub-qhorus/` — 4 entries (new domain; EVENT content, check_messages, reactive activation)
-
-8 duplicates discarded (superseded by new jvm/ entries). GARDEN.md updated with all new sections.
-
-2 new tools entries: `GE-20260513-176ca1` (git mv missing target dir gotcha), `GE-20260513-01e602` (git show recovery technique).
+**Critical finding — 512 unindexed entries:**
+forage CAPTURE's deliver step never calls `integrate_entry.py`, so GARDEN.md index is incomplete for half the garden. git grep (forage SEARCH Step 3) still finds all entries. **Top priority for next session.**
 
 ### `casehub/parent`
 
-- `docs/protocols/INDEX.md` rebuilt: 15 casehub-specific protocols, Garden References section (22 GE-IDs), Casehub Domain Entries section (33 GE-IDs grouped by domain).
-- `docs/PLATFORM.md` cleaned: stale `sql-type-portability.md` link → garden ref; persistence split paragraph → one-liner; ledger subclass bullet → pointer. Commit `77e498c`.
-- `docs/protocols/module-tier-structure.md` — Persistence Module Split Rule expanded with full rule text and canonical example.
-- `docs/protocols/ledger-subclass-extension.md` — new protocol: JOINED inheritance, V1004+ consumer migrations, domain-agnostic leaf hash, checklist.
+**Protocol schema clean:** 7 violations fixed (severity: required/error → critical/important/guidance; type: convention → rule). 25/25 protocols pass HEALTH.
 
 ### `hortora.github.io`
 
-- Blog entry 18 added: "Three Kinds of Knowledge" (2026-05-13) — garden taxonomy design, audit results.
-
----
-
-## Garden Schema Decision — `type: convention`
-
-**Settled this session.** Three-way taxonomy:
-- **Universal** — always true, no alternatives (`gotcha`, `technique`, `undocumented`)
-- **Convention** — style choice, alternatives exist → new `type: convention`
-- **Casehub-specific** — stays in protocols or casehub-* garden domains
-
-**`variant:` field** — when two entries share a `title:`, each adds `variant:` with alternative-specific descriptor. GARDEN.md groups them under the shared title. Single entries omit `variant:`.
-
-**6 convention entries pending schema change:** module-tier-structure, maven-submodule-naming, maven-module-scoping, quartz-ram-store, optional-module-pattern, spi-blocking-reactive-parity.
+Blog entry 19 published: "Conventions, Audits, and an Embarrassing Gap" (2026-05-17).
 
 ---
 
 ## What To Do Next
 
-**Immediate: implement soredium#44** — `type: convention` + `variant:` in `validate_pr.py` and `submission-formats.md`. Then write the 6 pending convention entries.
+**Immediate:** Fix the 512-entry index gap — wire `integrate_entry.py` into forage CAPTURE Step 8 (Deliver). Read `scripts/integrate_entry.py` first to understand what it updates (GARDEN.md, `_index/global.md`, `labels/`, domain `INDEX.md`). Test against a scratch garden before touching the live one. Open a Hortora/soredium issue before starting.
 
-**Then: Audit 3** — folder structure validity (does every entry have a natural home?).
-**Then: Audit 4** — `repos/` depth check (trim class-level detail, add references).
+**Then: Audit 4** — `repos/` depth check: trim class-level detail from casehub domain entries, add garden references.
 
-**Still pending (unchanged):** Langchain4j fork upgrade. QE run with GPU.
+**Still pending:** Langchain4j fork upgrade. QE run with GPU. `quarkus/` → `jvm/` merge (208 files, separate session).
 
 ---
 
@@ -73,8 +59,8 @@ Moved from `quarkus/` and `jvm/` to casehub domain directories. Commit `5996b15`
 
 | Resource | Location |
 |---|---|
-| Methodology design doc | `spec/docs/design/2026-05-05-hortora-project-knowledge-methodology.md` |
-| Convention schema issue | Hortora/soredium#44 |
-| Blog entry 18 | `hortora.github.io/_posts/2026-05-13-mdp01-garden-audit-taxonomy.md` |
+| Convention schema spec | `soredium/docs/superpowers/specs/2026-05-14-convention-schema-design.md` |
+| Blog entry 19 | `hortora.github.io/_posts/2026-05-17-mdp01-conventions-audits-index-gap.md` |
+| integrate_entry.py | `soredium/scripts/integrate_entry.py` |
 
-*Previous ADRs/refs — `git show HEAD~1:HANDOFF.md`*
+*Previous refs — `git show HEAD~1:HANDOFF.md`*
