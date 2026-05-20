@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-17 (session 12)*
+*Last updated: 2026-05-21 (session 13)*
 
 ---
 
@@ -14,42 +14,38 @@
 
 ### `soredium`
 
-**soredium#44 complete.** `type: convention` + `variant:` field shipped:
-- `validate_pr.py` — `find_same_title_siblings`, 4-branch variant check (CRITICAL/WARNING/suppression/non-convention), Jaccard suppression for confirmed sibling pairs
-- `validate_garden.py` — check 8: same-title group must all have `variant:` or ERROR
-- `forage/SKILL.md` — 11 enumeration sites updated, SWEEP Step 4 (convention scan), Proactive Trigger, editorial bar, scoring note, `quarkus/` marked as legacy domain
-- `forage/submission-formats.md` — `variant:` in Optional Fields table, Convention Template
+**Nit sweep complete (session 13).** Issues #49–53, #48, #46, #47 closed:
+- `validate_garden.py` — `SKIP_NAMES` module-level constant; `defaultdict` to module imports; PyYAML-absent test
+- `validate_pr.py` — `garden_path` conversion at entry; Jaccard leading-space guard; double-warning suppression for non-convention same-title siblings; `protocol:` format check; `invalidation_status: pending|resolved` format check
+- `forage/SKILL.md` — `protocol-link`, `flag-pending`, `flag-resolved` revision kinds in REVISE table
+- `harvest/SKILL.md` — REVIEW Step 3 surfaces `invalidation_triggers`; focused prompt for `invalidation_status: pending` entries
+- `forage/submission-formats.md` — `protocol:` and `invalidation_status:` in Optional Fields table
+- `work-start` skill — Step 3b garden search added (synced via cc-praxis)
+- `docs/protocols/` — created; PP-20260521-f84059 (`validate_schema.py` scope rule)
 
-Protocol skill: `VALID_SCOPES` bug fixed (was missing `universal`, `application`). Synced.
+**#45 skipped** — GARDEN.md two-level rendering is blocked by #54. `integrate_entry.py` doesn't write the By Technology listing at all (only drift counter); the rendering is a refinement of indexing work that hasn't landed yet.
 
-**Open issues:** #45 (GARDEN.md two-level rendering), #46 (work-start garden search), #47 (harvest trigger research), #48 (protocol: field), #49-53 (minor nits).
+**Open issues:** #54 (CAPTURE deliver step — top priority), #56 (backfill 512 entries), #45 (two-level rendering, blocked by #54), #57–59 (test infrastructure nits).
 
 ### `Hortora/garden`
 
-**Audit 3 complete:**
-- `approaches/` domain retired — 3 entries moved to `jvm/`, `domain:` frontmatter corrected
-- `quarkus/` documented as frozen legacy — new Quarkus entries route to `jvm/` only
-- Garden pre-commit hook gotcha captured: GE-20260517-3dddfa (`tools/`)
-- 5 convention/technique entries committed: GE-20260515-6e8205, da8abd, 70021c, c272d2, ffde26
-
-**Critical finding — 512 unindexed entries:**
-forage CAPTURE's deliver step never calls `integrate_entry.py`, so GARDEN.md index is incomplete for half the garden. git grep (forage SEARCH Step 3) still finds all entries. **Top priority for next session.**
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `casehub/parent`
 
-**Protocol schema clean:** 7 violations fixed (severity: required/error → critical/important/guidance; type: convention → rule). 25/25 protocols pass HEALTH.
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `hortora.github.io`
 
-Blog entry 19 published: "Conventions, Audits, and an Embarrassing Gap" (2026-05-17).
+Blog entry 20 published: "Nits and a Design Call" (2026-05-21).
 
 ---
 
 ## What To Do Next
 
-**Immediate:** Fix the 512-entry index gap — wire `integrate_entry.py` into forage CAPTURE Step 8 (Deliver). Read `scripts/integrate_entry.py` first to understand what it updates (GARDEN.md, `_index/global.md`, `labels/`, domain `INDEX.md`). Test against a scratch garden before touching the live one. Open a Hortora/soredium issue before starting.
+**Immediate:** Start #54 — wire `integrate_entry.py` into forage CAPTURE Step 8 (Deliver). The CAPTURE skill currently writes the entry file but never calls `integrate_entry.py`, so GARDEN.md, `_index/global.md`, `labels/`, and domain `INDEX.md` are never updated — 512 entries are dark. Read `forage/SKILL.md` CAPTURE Step 8 first, then read `scripts/integrate_entry.py` to confirm the invocation signature. Note: `integrate_entry.py` only updates the drift counter in GARDEN.md, not the By Technology listing — implementing the listing update is also part of #54's scope (it's what #45 depends on). Test against a scratch garden before touching the live one.
 
-**Then: Audit 4** — `repos/` depth check in `casehub/parent/docs/repos/`. 9 files (6 foundation repos + devtown, aml, clinical). Rule: each file stays at family-awareness level — module ownership, what it does NOT do, dependency graph. No class names, no method signatures. For each file: identify anything that has crept into class-level design detail, trim it, add a reference to the module's own DESIGN.md in its place. Start by listing all 9 files and skimming for the depth boundary.
+**Then #45** — once integrate_entry.py writes the By Technology listing, add two-level rendering for same-title convention entries (single entry → direct link; multiple → sub-list with variant as label).
 
 **Still pending:** Langchain4j fork upgrade. QE run with GPU. `quarkus/` → `jvm/` merge (208 files, separate session).
 
@@ -59,8 +55,9 @@ Blog entry 19 published: "Conventions, Audits, and an Embarrassing Gap" (2026-05
 
 | Resource | Location |
 |---|---|
-| Convention schema spec | `soredium/docs/superpowers/specs/2026-05-14-convention-schema-design.md` |
-| Blog entry 19 | `hortora.github.io/_posts/2026-05-17-mdp01-conventions-audits-index-gap.md` |
 | integrate_entry.py | `soredium/scripts/integrate_entry.py` |
+| forage CAPTURE Step 8 | `soredium/forage/SKILL.md` |
+| soredium protocols index | `soredium/docs/protocols/INDEX.md` |
+| Blog entry 20 | `hortora.github.io/_posts/2026-05-21-mdp01-nits-and-a-design-call.md` |
 
 *Previous refs — `git show HEAD~1:HANDOFF.md`*
