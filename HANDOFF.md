@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-21 (session 14)*
+*Last updated: 2026-05-23 (session 15)*
 
 ---
 
@@ -14,39 +14,49 @@
 
 ### `soredium`
 
-**All soredium issues closed (session 14).** #46, #54, #55, #56, #57, #58, #59 all closed.
-
-Key changes:
-- `scripts/integrate_entry.py` — `parse_entry` fixed: `str.split('---', 2)` → regex match on line-boundary markers; handles `---` in quoted YAML values
-- `scripts/validate_pr.py` — same `parse_entry` fix applied
-- `scripts/integrate_entry.py` — `update_garden_by_technology` already wired (#54 was done in session 13 before handover was written)
-- `forage/SKILL.md` — technique→protocol promotion note; `protocol-link` REVISE row extended
-- `protocol/SKILL.md` — `garden_ref` field added to entry format; garden techniques as upstream sources documented; CAPTURE Step 2 and Skill Chaining updated
-- `tests/test_integration.py` — shared `_make_git_garden()` helper extracted; two missing tests added; fixture frontmatter fields fixed
-
-**Open issues:** None. Long-horizon epics (#10–13, #31) are the only remaining work.
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `Hortora/garden`
 
-**Backfill complete.** 80 entries were absent from GARDEN.md By Technology section (not 512 — the `_summaries/` heuristic was wrong; most entries were already indexed). Surgical patch via `update_garden_by_technology()` only — full `integrate()` would have duplicated domain INDEX.md rows. 4 new domain INDEX.md files created (casehub-ledger, casehub-work, scelight, web). Garden validation: clean.
-
-Garden entry submitted: GE-20260521-df2a10 — Python YAML frontmatter `str.split('---')` gotcha (tools domain).
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `casehub/parent`
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+Protocol store removed. `docs/protocols/` deleted. CLAUDE.md updated to point to `casehub/garden` and explicitly says not to write protocol files here.
+
+### `casehub/garden` — NEW
+
+New repo (`casehubio/garden`). Always on main, no branches. Holds the full CaseHub protocol store (68 files: `docs/protocols/casehub/` + `docs/protocols/universal/`). CLAUDE.md written. GitHub: `https://github.com/casehubio/garden`. Local: `~/claude/casehub/garden/`.
+
+All peer repo CLAUDE.md files updated: engine, clinical, devtown, platform, aml, qhorus.
+
+Remaining peer repos not yet updated (needs coordination — each must be on main, no active session): `work`, `ledger`, `claudony`, `connectors` and their workspace CLAUDE.md files at `public/casehub/*/CLAUDE.md`.
 
 ### `hortora.github.io`
 
-Blog entry 21 published: "The Parser That Couldn't Parse Itself" (2026-05-21).
+Blog entry 22 published: "A Garden for CaseHub" (2026-05-23).
+
+### `cc-praxis` (protocol skill)
+
+Two fixes committed and synced:
+- Resolution order now checks CLAUDE.md routing row first, handles sibling `../parent/` layout, creates as last resort only.
+- Commit step resolves git root from `PROTOCOLS_DIR`, not `PROJECT_ROOT` — prevents commits landing in wrong repo.
+
+---
+
+## Open Design Question
+
+**`technology` field for garden entries** — proposed but not decided. Coarse `domain` field is correct as Qdrant partition key, but `tags` are empty for 51% of entries, so technology-level retrieval is broken. A best-effort `technology: quarkus` field (no certainty required, unlike `root_cause_layer`) would restore filtering without demanding reliable attribution. Pending decision before the `quarkus/` → `jvm/` YAML migration proceeds.
 
 ---
 
 ## What To Do Next
 
-**Immediate:** Pick from the long-horizon epics or tackle the `quarkus/` → `jvm/` merge (208 files — separate session, mechanical but large).
+**Immediate:** Coordinate updates to `work`, `ledger`, `claudony`, `connectors` CLAUDE.md files — add `protocols → garden` routing row to each when each is on main.
 
-**Still pending:** Langchain4j fork upgrade. QE run with GPU. `quarkus/` → `jvm/` merge. Epics #10–13, #31.
+**Pending:** Decide on the `technology` field, then run the `quarkus/` → `jvm/` domain YAML migration (~192 entries). Tags backfill still needed (51% empty).
+
+**Still on the list:** 16 missing protocols in `casehub/garden/docs/protocols/PENDING-MODULE-UPDATES.md`. `quarkus/` → `jvm/` physical directory question (design says keep dirs; only the YAML field migrates). Langchain4j fork upgrade. QE run with GPU.
 
 ---
 
@@ -54,6 +64,7 @@ Blog entry 21 published: "The Parser That Couldn't Parse Itself" (2026-05-21).
 
 | Resource | Location |
 |---|---|
-| Blog entry 21 | `hortora.github.io/_posts/2026-05-21-mdp02-parser-couldnt-parse-itself.md` |
+| Blog entry 22 | `hortora.github.io/_posts/2026-05-23-mdp01-casehub-garden.md` |
+| casehub/garden | `~/claude/casehub/garden/` — `https://github.com/casehubio/garden` |
 
 *Previous refs — `git show HEAD~1:HANDOFF.md`*
