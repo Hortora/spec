@@ -203,7 +203,7 @@ This module sits below LangChain4J, not beside it. LangChain4J's `OnnxEmbeddingM
 | Cross-encoder reranking | `inference-tasks` (this module) |
 | RAG pipeline, vector stores, MCP | LangChain4J |
 
-The SPLADE implementation in `inference-splade` is a candidate for upstream contribution to LangChain4J (issue #1600) once stable.
+The SPLADE implementation in `inference-splade` is a candidate for upstream contribution to LangChain4J (issue #4994 — Qdrant hybrid search support, open) once stable.
 
 ---
 
@@ -213,4 +213,4 @@ The SPLADE implementation in `inference-splade` is a candidate for upstream cont
 2. **`inference-api` + `inference-runtime` + `inference-inmem`** — core module, no framework coupling, usable immediately in JVM mode
 3. **`inference-tasks`** — NliClassifier, TextClassifier, ScalarRegressor, CrossEncoderReranker
 4. **`inference-quarkus`** — CDI wiring; native image mode conditional on prototype outcome
-5. **`inference-splade`** — after ONNX native image validated; contributes to LangChain4J #1600 when stable
+5. **`inference-splade`** — after ONNX native image validated; contributes to LangChain4J #4994 when stable
