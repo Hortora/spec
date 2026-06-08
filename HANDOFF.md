@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-05-23 (session 15)*
+*Last updated: 2026-06-08 (session 16 — RAG)*
 
 ---
 
@@ -10,61 +10,73 @@
 
 ---
 
-## The Three Repos — delta only
+## The Repos — delta only
 
-### `soredium`
+### `Hortora/garden-engine` — NEW
+
+Phase 1 retrieval service is live. Quarkus 3.36.1, Java 25, GraalVM native CI.
+Scans `~/.hortora/garden` on startup, embeds via Ollama, upserts into Qdrant.
+Exposes `GET /search` and `garden_search` / `garden_status` MCP tools over HTTP SSE.
+14/14 tests green. Workspace: `mdproctor/wsp-garden-engine` at `~/claude/public/hortora/garden-engine`.
+
+Issue #2 closed (Qdrant domain payload pre-filter — `IsEqualTo` replaces post-retrieval Java filter).
+Issue #3 open (multi-domain `IsIn` variant — deferred).
+Issue #4 open (SearchResource pre-existing minor issues — `parseScore` metadata vs similarity, `searchFor` unchecked cast).
+
+### `casehubio/onnx-inference` — DESIGN ONLY, not yet built
+
+Spec at `docs/superpowers/specs/2026-06-03-onnx-inference-module-design.md`.
+General ONNX inference wrapper (NLI, classification, regression, SPLADE, cross-encoder).
+Sits below LangChain4J. CaseHub builds it; Hortora takes it as a phase 2 dependency.
+Gated on: ONNX Runtime JNI + Quarkus native image prototype on macOS ARM.
+LangChain4J #4994 (Qdrant hybrid search) is the upstream issue to watch.
+
+### `casehubio/garden` — protocol migration complete
+
+87 files migrated from `casehubio/parent/docs/protocols/` → `casehubio/garden/docs/protocols/`.
+`parent/docs/protocols/` deleted. FOUNDATION-INDEX (74 rows), HARNESS-INDEX (9 rows),
+universal/INDEX (4 rows) updated. Single source of truth is now casehubio/garden.
+
+Note: universal/INDEX.md description ("staging area for Hortora") is misleading — needs
+rewording. These are mandated conventions, not forage submissions.
+
+### Other repos
 
 *Unchanged — `git show HEAD~1:HANDOFF.md`*
-
-### `Hortora/garden`
-
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
-
-### `casehub/parent`
-
-Protocol store removed. `docs/protocols/` deleted. CLAUDE.md updated to point to `casehub/garden` and explicitly says not to write protocol files here.
-
-### `casehub/garden` — NEW
-
-New repo (`casehubio/garden`). Always on main, no branches. Holds the full CaseHub protocol store (68 files: `docs/protocols/casehub/` + `docs/protocols/universal/`). CLAUDE.md written. GitHub: `https://github.com/casehubio/garden`. Local: `~/claude/casehub/garden/`.
-
-All peer repo CLAUDE.md files updated: engine, clinical, devtown, platform, aml, qhorus.
-
-Remaining peer repos not yet updated (needs coordination — each must be on main, no active session): `work`, `ledger`, `claudony`, `connectors` and their workspace CLAUDE.md files at `public/casehub/*/CLAUDE.md`.
-
-### `hortora.github.io`
-
-Blog entry 22 published: "A Garden for CaseHub" (2026-05-23).
-
-### `cc-praxis` (protocol skill)
-
-Two fixes committed and synced:
-- Resolution order now checks CLAUDE.md routing row first, handles sibling `../parent/` layout, creates as last resort only.
-- Commit step resolves git root from `PROTOCOLS_DIR`, not `PROJECT_ROOT` — prevents commits landing in wrong repo.
 
 ---
 
-## Open Design Question
+## Open Design Questions
 
-**`technology` field for garden entries** — proposed but not decided. Coarse `domain` field is correct as Qdrant partition key, but `tags` are empty for 51% of entries, so technology-level retrieval is broken. A best-effort `technology: quarkus` field (no certainty required, unlike `root_cause_layer`) would restore filtering without demanding reliable attribution. Pending decision before the `quarkus/` → `jvm/` YAML migration proceeds.
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ---
 
 ## What To Do Next
 
-**Immediate:** Coordinate updates to `work`, `ledger`, `claudony`, `connectors` CLAUDE.md files — add `protocols → garden` routing row to each when each is on main.
+**Immediate:** garden-engine phase 2 design — SPLADE + cross-encoder reranker via
+`casehubio/onnx-inference`. Gated on ONNX native image prototype. Don't start until
+the prototype runs.
 
-**Pending:** Decide on the `technology` field, then run the `quarkus/` → `jvm/` domain YAML migration (~192 entries). Tags backfill still needed (51% empty).
+**Pending (garden-engine):**
+- Federation — canonical/child chain walk (Hortora-specific, no shared module)
+- Incremental re-indexing / file watching (startup-only currently)
+- Issues #3, #4 (multi-domain filter, SearchResource cleanup)
 
-**Still on the list:** 16 missing protocols in `casehub/garden/docs/protocols/PENDING-MODULE-UPDATES.md`. `quarkus/` → `jvm/` physical directory question (design says keep dirs; only the YAML field migrates). Langchain4j fork upgrade. QE run with GPU.
+**Pending (casehub):**
+- ONNX native image prototype — must validate before onnx-inference module begins
+- Peer repo CLAUDE.md routing updates still needed: `work`, `ledger`, `claudony`, `connectors`
 
 ---
 
-## Key ADRs / Reference Links
+## Key References
 
 | Resource | Location |
 |---|---|
-| Blog entry 22 | `hortora.github.io/_posts/2026-05-23-mdp01-casehub-garden.md` |
-| casehub/garden | `~/claude/casehub/garden/` — `https://github.com/casehubio/garden` |
+| garden-engine spec | `Hortora/garden-engine` main |
+| onnx-inference spec | `docs/superpowers/specs/2026-06-03-onnx-inference-module-design.md` |
+| casehub RAG issue | `casehubio/parent#158` |
+| casehub-rag issue | `casehubio/parent#164` |
+| LangChain4J Qdrant hybrid | `langchain4j/langchain4j#4994` |
 
 *Previous refs — `git show HEAD~1:HANDOFF.md`*
