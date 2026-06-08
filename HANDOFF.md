@@ -1,6 +1,6 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-06-08 (session 16 — RAG)*
+*Last updated: 2026-06-08 (session 17 — casehub protocol routing audit)*
 
 ---
 
@@ -12,33 +12,33 @@
 
 ## The Repos — delta only
 
-### `Hortora/garden-engine` — NEW
+### CaseHub peer repos — protocol routing complete
 
-Phase 1 retrieval service is live. Quarkus 3.36.1, Java 25, GraalVM native CI.
-Scans `~/.hortora/garden` on startup, embeds via Ollama, upserts into Qdrant.
-Exposes `GET /search` and `garden_search` / `garden_status` MCP tools over HTTP SSE.
-14/14 tests green. Workspace: `mdproctor/wsp-garden-engine` at `~/claude/public/hortora/garden-engine`.
+All 15 CaseHub workspace/project CLAUDE.mds now have `## Reference Documents (casehub-parent)`
+pointing to the garden protocol indexes. This session closed the backlog item.
 
-Issue #2 closed (Qdrant domain payload pre-filter — `IsEqualTo` replaces post-retrieval Java filter).
-Issue #3 open (multi-domain `IsIn` variant — deferred).
-Issue #4 open (SearchResource pre-existing minor issues — `parseScore` metadata vs similarity, `searchFor` unchecked cast).
+Index used per repo type:
+- **FOUNDATION-INDEX:** claudony, connectors, ledger, work, eidos
+- **HARNESS-INDEX + universal/INDEX:** drafthouse
+- **universal/INDEX only:** neural-text
+
+5 of the 7 commits landed on active feature branches (not main):
+- `connectors` → issue-16-mcp-slack-bot-tools
+- `ledger` → issue-122-postgresql-devservices
+- `work` → issue-256-multi-tenancy-tenantid
+- `neural-text` → issue-5-inference-quarkus-batch
+- `eidos` → committed to main (squash branch had already merged)
+
+Changes will reach main when those branches merge. No follow-up needed unless
+a branch is abandoned without merging.
+
+### `Hortora/garden-engine`
+
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### `casehubio/onnx-inference` — DESIGN ONLY, not yet built
 
-Spec at `docs/superpowers/specs/2026-06-03-onnx-inference-module-design.md`.
-General ONNX inference wrapper (NLI, classification, regression, SPLADE, cross-encoder).
-Sits below LangChain4J. CaseHub builds it; Hortora takes it as a phase 2 dependency.
-Gated on: ONNX Runtime JNI + Quarkus native image prototype on macOS ARM.
-LangChain4J #4994 (Qdrant hybrid search) is the upstream issue to watch.
-
-### `casehubio/garden` — protocol migration complete
-
-87 files migrated from `casehubio/parent/docs/protocols/` → `casehubio/garden/docs/protocols/`.
-`parent/docs/protocols/` deleted. FOUNDATION-INDEX (74 rows), HARNESS-INDEX (9 rows),
-universal/INDEX (4 rows) updated. Single source of truth is now casehubio/garden.
-
-Note: universal/INDEX.md description ("staging area for Hortora") is misleading — needs
-rewording. These are mandated conventions, not forage submissions.
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
 ### Other repos
 
@@ -65,7 +65,7 @@ the prototype runs.
 
 **Pending (casehub):**
 - ONNX native image prototype — must validate before onnx-inference module begins
-- Peer repo CLAUDE.md routing updates still needed: `work`, `ledger`, `claudony`, `connectors`
+- universal/INDEX.md description reword in casehub/garden ("staging area" → "mandated conventions")
 
 ---
 
