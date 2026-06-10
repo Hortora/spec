@@ -48,6 +48,18 @@ The site publishes automatically to `hortora.github.io` — GitHub Pages builds 
 - ADR-0002: CI scripts in soredium
 - ADR-0003: GE-ID scheme (date + 6 hex)
 
+## Project Artifacts
+
+Paths that are project content (not workspace noise). Skills use this to avoid
+filtering or dropping commits that touch these paths.
+
+| Path | What it is |
+|------|------------|
+| `CLAUDE.md` | Project conventions (build, test, naming) |
+| `docs/adr/` | Architecture decision records |
+| `docs/superpowers/specs/` | Design specifications |
+| `docs/design/` | Design documents |
+
 ## Work Tracking
 
 **Issue tracking:** enabled
