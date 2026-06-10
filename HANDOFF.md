@@ -1,66 +1,56 @@
 # Hortora — Project Handoff
 
-*Last updated: 2026-06-09 (session 19 — neural-text gate confirmed passed)*
+*Last updated: 2026-06-10 (session 20 — phase 2 unblocked, context sync)*
 
 ---
 
 ## What Hortora Is / Local Folder Structure
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+*Unchanged — `git show HEAD~2:HANDOFF.md`*
 
 ---
 
 ## The Repos — delta only
 
-### CaseHub peer repos — protocol routing complete
-
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
-
-### `Hortora/garden-engine` — issues #3 and #4 closed
+### CaseHub peer repos
 
 *Unchanged — `git show HEAD~2:HANDOFF.md`*
 
-### `casehubio/neural-text` — C1–C7 complete, all journeys shipped
+### `casehubio/neural-text` — C1–C7 complete (confirmed)
 
-The ONNX native image prototype (C2) passed. All seven chapters shipped:
-`inference-api`, `inference-runtime`, `inference-inmem`, `inference-tasks`,
-`inference-splade`, `inference-quarkus`, `rag-api`, `rag`, `rag-tika`, `rag-testing`.
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
-Hortora consumers: `casehub-inference-splade` (`SparseEmbedder`) and
-`casehub-inference-tasks` (`CrossEncoderReranker`) are published and ready.
-Epic #7 closed. Tracking: casehubio/parent#158, casehubio/parent#164.
+### `casehubio/garden` + `casehubio/parent` — Mutiny Tier 1 protocol update
+
+`casehubio/garden#3` closed: `module-tier-structure.md` updated — Mutiny `provided` is
+acceptable in Tier 1 api modules (same reasoning as CDI annotations; inert without a
+runtime). `casehubio/parent` PLATFORM.md updated (commit `a9bd5af`) to reflect this
+inline. Companion issue `parent#213` was already closed.
 
 ### Other repos
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+*Unchanged — `git show HEAD~2:HANDOFF.md`*
 
 ---
 
 ## Open Design Questions
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+*Unchanged — `git show HEAD~2:HANDOFF.md`*
 
 ---
 
 ## What To Do Next
 
-**Immediate:** garden-engine phase 2 design — SPLADE hybrid search + cross-encoder
-reranker. Gate is passed. Dependencies published:
-- `casehub-inference-splade` → `SparseEmbedder` for Qdrant named vector space upsert
-- `casehub-inference-tasks` → `CrossEncoderReranker` for precision-mode top-N
+*Unchanged — `git show HEAD~1:HANDOFF.md`*
 
-Run `/work` against a new garden-engine issue for phase 2. Design first (brainstorm),
-then TDD.
-
-**Pending (garden-engine):**
-- Federation — canonical/child chain walk (Hortora-specific, no shared module)
-- Incremental re-indexing / file watching (startup-only currently)
-
-**Monitoring:**
-- Protocol routing commits on 3 active CaseHub branches (connectors, ledger, work) — no action until branches merge or are abandoned. (`neural-text` done — removed.)
+**Immediate:** garden-engine phase 2 — SPLADE hybrid search + cross-encoder reranker.
+Gate passed. `SparseEmbedder` (`casehub-inference-splade`) and `CrossEncoderReranker`
+(`casehub-inference-tasks`) are published.
 
 ---
 
 ## Key References
 
-*Unchanged — `git show HEAD~1:HANDOFF.md`*
+- ARC42STORIES.MD: `git show HEAD~1:HANDOFF.md`
+- Blog: `../hortora.github.io/_posts/2026-06-10-mdp01-phase-2-unblocked.md`
+- Garden: GE-20260610-eb673a (Claude Code Agent tool sub-agents don't inherit MCP connections)
