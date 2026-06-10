@@ -10,7 +10,7 @@
 ## Goal
 
 Port the ecosystem mining pipeline and the deduplication/harvest layer to a single
-native Quarkus application (`garden-engine`). Integrate Langchain4j at both layers
+native Quarkus application (`engine`). Integrate Langchain4j at both layers
 to move from structural heuristics (Jaccard, cosine on regex counts) to semantic
 similarity and LLM-driven reasoning (pattern naming, entry merging, classification).
 
@@ -74,8 +74,8 @@ quarkus.langchain4j.anthropic.model-name=claude-sonnet-4-6
 quarkus.langchain4j.anthropic.max-tokens=4096
 ```
 
-Switch model: `./garden-engine mine --all` (uses Ollama) vs
-`./garden-engine mine --all --profile=sonnet` (uses Claude).
+Switch model: `./engine mine --all` (uses Ollama) vs
+`./engine mine --all --profile=sonnet` (uses Claude).
 
 ### Recommended Free Models (Ollama)
 
@@ -107,7 +107,7 @@ quality vs Claude Sonnet. The QE framework measures this gap systematically.
 ### How it works
 
 ```
-garden-engine qe --sample=50 --tasks=all --compare=sonnet
+engine qe --sample=50 --tasks=all --compare=sonnet
 ```
 
 1. **Sample** — randomly selects N entries/clusters from the garden or last mining run
@@ -182,7 +182,7 @@ estimate: "running the full garden through Sonnet would cost $X — Ollama saves
 Single Quarkus application with two execution modes:
 
 ```
-garden-engine
+engine
 ├── CLI mode (default)        — triggered by scripts, cron, or garden post-commit hook
 │   ├── mine [--project <name>|--all]   — run mining pipeline
 │   └── harvest [--sweep|--review]      — run dedup/harvest pipeline
@@ -363,7 +363,7 @@ The full semantic harvest flow replaces the current Jaccard-based dedupe agent:
 
 ```
 1. New entry committed to garden
-2. garden-engine harvest triggered (post-commit hook or REST)
+2. engine harvest triggered (post-commit hook or REST)
 3. SemanticDeduplicator searches Qdrant for similar entries (threshold: 0.85)
 4. For each candidate pair:
    a. DedupeClassifier classifies: DISTINCT / RELATED / DUPLICATE
@@ -376,7 +376,7 @@ The full semantic harvest flow replaces the current Jaccard-based dedupe agent:
 6. Commit: "harvest: semantic sweep — N related, M merged"
 ```
 
-This runs **fully autonomously** — the garden agent invokes `garden-engine harvest`
+This runs **fully autonomously** — the garden agent invokes `engine harvest`
 instead of Claude running the dedup CLAUDE.md instructions manually. Claude's judgment
 is inside the registered AI services, not in the agent prompt.
 
@@ -486,9 +486,9 @@ Phase 4 — Semantic harvest
 - `DedupeClassifier` (Ollama, validated by QE)
 - `EntryMergeService` (Ollama or Sonnet depending on QE threshold)
 - CLI command: `harvest --sweep`
-- Replace garden-agent CLAUDE.md dedup loop with `garden-engine harvest`
+- Replace garden-agent CLAUDE.md dedup loop with `engine harvest`
 
 Phase 5 — Native image + replace Python pipeline
 - GraalVM native build
 - Retire Python scripts (keep as reference in `scripts/legacy/`)
-- Update garden-agent-install.sh to invoke `garden-engine` binary
+- Update garden-agent-install.sh to invoke `engine` binary

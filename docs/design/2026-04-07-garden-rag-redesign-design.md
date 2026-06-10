@@ -150,7 +150,7 @@ The current design is Claude-first but the protocol is not inherently Claude-spe
 
 ### Layer 2: The Engine / Reference Implementation
 
-The **garden-engine** repository: the reference implementation of the spec.
+The **engine** repository: the reference implementation of the spec.
 
 - Validation scripts (`validate_garden.py`, `validate_pr.py`, `integrate_entry.py`)
 - GitHub Actions workflows (PR validation, index maintenance, freshness scanning)
@@ -166,7 +166,7 @@ A **GitHub organisation** housing canonical community-curated domain gardens:
 ```
 github.com/<org-name>/
   ├── garden-spec          ← The open protocol specification
-  ├── garden-engine        ← Reference implementation (validators, CI, web app, MCP)
+  ├── engine        ← Reference implementation (validators, CI, web app, MCP)
   │
   ├── tools-garden         ← git, docker, bash, CI/CD, regex, ai-tools            (GE-)
   ├── jvm-garden           ← Java, Kotlin, Quarkus, Maven, Gradle, Spring, Drools  (JE-)
@@ -2359,7 +2359,7 @@ Claude (submitter)          GitHub                    CI                     Hum
 
 ### CI Automation Specification
 
-All checks run in GitHub Actions. None require Claude. Implementation lives in `scripts/validate_pr.py` and `scripts/integrate_entry.py` in the garden-engine repo.
+All checks run in GitHub Actions. None require Claude. Implementation lives in `scripts/validate_pr.py` and `scripts/integrate_entry.py` in the engine repo.
 
 #### On PR Open: `validate_pr.py` — what it checks
 
@@ -3232,7 +3232,7 @@ Three kinds of work exist in this project:
 |------|-------------|-------|
 | **GitHub org** | `<org-name>` created; governance model established | Complete |
 | **`garden-spec` repo** | The open specification document published | v1.0; refined over time |
-| **`garden-engine` repo** | All tooling migrated from personal repo | Complete |
+| **`engine` repo** | All tooling migrated from personal repo | Complete |
 | **First canonical garden** | `jvm-garden` (JE-) — existing entries migrated | First entries; evergreen |
 | **Second canonical garden** | `tools-garden` (TE-) | First entries; evergreen |
 | **Contribution model** | PR-based, CI-validated, public | Complete |

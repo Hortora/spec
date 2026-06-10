@@ -23,7 +23,7 @@ without secrets.
 
 * **Option A** — Scripts in `Hortora/garden` (data repo)
 * **Option B** — Scripts in `Hortora/soredium`, CI checks out both repos
-* **Option C** — soredium published to PyPI; CI installs via `pip install garden-engine`
+* **Option C** — soredium published to PyPI; CI installs via `pip install engine`
 
 ## Decision Outcome
 
