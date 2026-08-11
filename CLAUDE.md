@@ -12,7 +12,6 @@ See `docs/adr/` for architectural decision records and `docs/blog/` is no longer
 
 ## Blog
 
-**Blog directory:** `../hortora.github.io/_posts/`
 
 Blog posts for the Hortora project live in the `hortora.github.io` repository, not in this spec repo. When writing a blog entry with `write-blog`, it will write directly to `../hortora.github.io/_posts/` which is a sibling directory on disk.
 
@@ -57,7 +56,7 @@ filtering or dropping commits that touch these paths.
 |------|------------|
 | `CLAUDE.md` | Project conventions (build, test, naming) |
 | `docs/adr/` | Architecture decision records |
-| `docs/superpowers/specs/` | Design specifications |
+| `docs/specs/` | Design specifications |
 | `docs/design/` | Design documents |
 
 ## Work Tracking
